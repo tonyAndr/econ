@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="OpenStreetMapConstants">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/OpenStreetMapConstants.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
