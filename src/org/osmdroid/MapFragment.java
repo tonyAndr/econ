@@ -451,7 +451,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
             mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
             updateUI();
         }
-        if (mRequestingLocationUpdates) {
+        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
         }
     }
