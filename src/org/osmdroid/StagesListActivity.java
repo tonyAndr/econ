@@ -1,12 +1,15 @@
 package org.osmdroid;
 
-import android.app.ListActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import org.osmdroid.views.util.StagesAdapter;
+
+import java.util.ArrayList;
 
 
 public class StagesListActivity extends ActionBarActivity {
@@ -18,27 +21,23 @@ public class StagesListActivity extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final String[] stagesArr = new String[] {
-                "Stage #1",
-                "Stage #2",
-                "Stage #3",
-                "Stage #4",
-                "Stage #5",
-                "Stage #5",
-                "Stage #5",
-                "Stage #5",
-                "Stage #5",
-                "Stage #5",
-                "Stage #5",
-                "Stage #5",
-        };
+        setContentView(R.layout.stageslist);
+// Construct the data source
+        ArrayList<Stage> arrayOfUsers = new ArrayList<Stage>();
+// Create the adapter to convert the array to views
+        StagesAdapter adapter = new StagesAdapter(this, arrayOfUsers);
+// Attach the adapter to a ListView
+        ListView listView = (ListView) findViewById(R.id.stageslistview);
+        listView.setAdapter(adapter);
+        Stage newStage = new Stage(1,"Burgos", "Logrono");
+        adapter.add(newStage);
 
 //        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stages);
         //setListAdapter(adapter);
 //        getActionBar().setDisplayHomeAsUpEnabled(true);
-        setContentView(R.layout.stageslist);
-        ListView lv = (ListView) findViewById(R.id.stageslistview);
-        lv.setAdapter(new ArrayAdapter<String>(this, R.layout.list_item, R.id.stage_name, stagesArr));
+
+//        ListView lv = (ListView) findViewById(R.id.stageslistview);
+//        lv.setAdapter(new ArrayAdapter<String>(this, R.layout.stage_list_item, R.id.stage_name, stagesArr));
 
     }
 
