@@ -281,20 +281,20 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         mMapView.getOverlayManager().onCreateOptionsMenu(menu, MENU_LAST_ID, mMapView);
 
         // Put samples next
-		SubMenu samplesSubMenu = menu.addSubMenu(0, MENU_SAMPLES, Menu.NONE, R.string.samples)
-				.setIcon(android.R.drawable.ic_menu_gallery);
-		SampleFactory sampleFactory = SampleFactory.getInstance();
-		for (int a = 0; a < sampleFactory.count(); a++) {
-			final BaseSampleFragment f = sampleFactory.getSample(a);
-			samplesSubMenu.add(f.getSampleTitle()).setOnMenuItemClickListener(
-					new OnMenuItemClickListener() {
-						@Override
-						public boolean onMenuItemClick(MenuItem item) {
-							startSampleFragment(f);
-							return true;
-						}
-					});
-		}
+//		SubMenu samplesSubMenu = menu.addSubMenu(0, MENU_SAMPLES, Menu.NONE, R.string.samples)
+//				.setIcon(android.R.drawable.ic_menu_gallery);
+//		SampleFactory sampleFactory = SampleFactory.getInstance();
+//		for (int a = 0; a < sampleFactory.count(); a++) {
+//			final BaseSampleFragment f = sampleFactory.getSample(a);
+//			samplesSubMenu.add(f.getSampleTitle()).setOnMenuItemClickListener(
+//					new OnMenuItemClickListener() {
+//						@Override
+//						public boolean onMenuItemClick(MenuItem item) {
+//							startSampleFragment(f);
+//							return true;
+//						}
+//					});
+//		}
 
         // Put "About" menu item last
         menu.add(0, MENU_ABOUT, Menu.CATEGORY_SECONDARY, R.string.about).setIcon(
@@ -420,7 +420,10 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
             GeoPoint point = new GeoPoint(mCurrentLocation);
             mMapView.getController().animateTo(point);
-            mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
+            if (mMapView.getZoomLevel() < TRACK_ZOOM_LEVEL) {
+                mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
+            }
+
         }
     }
 
@@ -497,7 +500,9 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         if (mCurrentLocation != null) {
             GeoPoint point = new GeoPoint(mCurrentLocation);
             mMapView.getController().animateTo(point);
-            mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
+            if (mMapView.getZoomLevel() < TRACK_ZOOM_LEVEL) {
+                mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
+            }
         }
 
     }
