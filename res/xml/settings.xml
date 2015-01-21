@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_main_options_title"
+        android:key="pref_key_main_settings">
+        <CheckBoxPreference
+            android:key="pref_key_prevent_screenoff"
+            android:summary="@string/pref_summary_prevent_screenoff"
+            android:title="@string/pref_title_prevent_screenoff"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/pref_map_options_title"
+        android:key="pref_key_map_settings">
+        <CheckBoxPreference
+            android:key="pref_key_info_geo"
+            android:summary="@string/pref_summary_info_geo"
+            android:title="@string/pref_title_info_geo"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="pref_key_rotation"
+            android:summary="@string/pref_summary_rotation"
+            android:title="@string/pref_title_rotation"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="pref_key_locktouch"
+            android:summary="@string/pref_summary_locktouch"
+            android:title="@string/pref_title_locktouch"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -4,18 +4,15 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.osmdroid.Stage;
 import org.osmdroid.views.util.StagesAdapter;
 
 import java.util.ArrayList;
 
 
 public class StagesListActivity extends ActionBarActivity {
-
-
-    private ArrayAdapter<String> adapter;
 
 
     @Override
@@ -31,14 +28,13 @@ public class StagesListActivity extends ActionBarActivity {
         listView.setAdapter(adapter);
         Stage newStage = new Stage(1,"Burgos", "Logrono");
         adapter.add(newStage);
+        adapter.add(newStage);
+        adapter.add(newStage);
+        adapter.add(newStage);
 
-//        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stages);
-        //setListAdapter(adapter);
-//        getActionBar().setDisplayHomeAsUpEnabled(true);
-
-//        ListView lv = (ListView) findViewById(R.id.stageslistview);
-//        lv.setAdapter(new ArrayAdapter<String>(this, R.layout.stage_list_item, R.id.stage_name, stagesArr));
-
+//        JSONArray jsonArray = ...;
+//        ArrayList<Stage> newStages = Stage.fromJson(jsonArray);
+//        adapter.addAll(newStages);
     }
 
 
