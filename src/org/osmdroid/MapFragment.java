@@ -4,7 +4,10 @@ package org.osmdroid;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,9 +19,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -31,9 +32,12 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.osmdroid.bonuspack.overlays.FolderOverlay;
+import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.constants.OpenStreetMapConstants;
-import org.osmdroid.samplefragments.BaseSampleFragment;
-import org.osmdroid.samplefragments.SampleFactory;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
@@ -44,9 +48,15 @@ import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 //import org.osmdroid.google.wrapper.GeoPoint;
 
@@ -195,9 +205,16 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
         MapTouchOverlay mapTouchOverlay = new MapTouchOverlay(getActivity());
         mMapView.getOverlays().add(mapTouchOverlay);
-//        onUseMapActivityBtnHandler();
+        try {
+            drawAlberguesMarkers(mMapView);
+            mMapView.invalidate();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         setHasOptionsMenu(true);
     }
+
+
     public class MapTouchOverlay extends org.osmdroid.views.overlay.Overlay {
 
         public MapTouchOverlay(Context ctx) {super(ctx);}
@@ -505,6 +522,130 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
             }
         }
 
+    }
+
+    public JSONArray parseJSONData(String filename) {
+        String JSONString = null;
+        JSONArray JSONArray = null;
+        try {
+
+            //open the inputStream to the file
+            InputStream inputStream = getActivity().getAssets().open(filename);
+
+            int sizeOfJSONFile = inputStream.available();
+
+            //array that will store all the data
+            byte[] bytes = new byte[sizeOfJSONFile];
+
+            //reading data into the array from the file
+            inputStream.read(bytes);
+
+            //close the input stream
+            inputStream.close();
+
+            JSONString = new String(bytes, "UTF-8");
+            JSONArray = new JSONArray(JSONString);
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        catch (JSONException x) {
+            x.printStackTrace();
+            return null;
+        }
+        return JSONArray;
+    }
+    public Marker drawMarker(MapView mapView, Double lat, Double lng, String title, String desc) {
+
+        GeoPoint mGeoP = new GeoPoint(lat, lng);
+
+        // build a new marker pin
+        Marker mPin = new Marker(mapView);
+        mPin.setPosition(mGeoP);
+        mPin.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        mPin.setIcon(getResources().getDrawable(R.drawable.ic_alb_marker));
+        mPin.setTitle(title);
+        mPin.setSubDescription(desc);
+        mPin.setSnippet("Snippet text");
+
+        // add new marker pin to map
+
+        return mPin;
+
+
+    }
+    public void drawAlberguesMarkers(MapView mapView) throws JSONException {
+
+
+
+        RadiusMarkerClusterer albMarkersOverlay = new RadiusMarkerClusterer(getActivity());
+        Drawable clusterIconD = getResources().getDrawable(R.drawable.ic_alb_cluster);
+        Bitmap clusterIcon = ((BitmapDrawable)clusterIconD).getBitmap();
+        albMarkersOverlay.setIcon(clusterIcon);
+        mapView.getOverlays().add(albMarkersOverlay);
+
+        //Get the JSON object from the data
+        String path = "json/albergues.txt";
+        JSONArray parent = parseJSONData(path);
+
+//        Log.v("TEST", parent.toString());
+        for (int i = 0; i < parent.length(); i++) {
+            JSONObject v = parent.getJSONObject(i);
+            String alb_geo = v.getString("alb_geo");
+            if (alb_geo != null && alb_geo.length() > 1) {
+                String title = v.getString("albergue");
+                String desc = v.getString("locality") + " " + v.getString("address");
+
+                String[] location = new String[2];
+
+                if (alb_geo.contains(", ") == true){
+                    location = alb_geo.split(", ");
+                } else {
+                    location = alb_geo.split(",");
+                }
+
+                if (location[0] == null || location[0] == "") {
+                    Log.v("TEST", v.getString("id") + " " + location);
+                } else {
+                    Double lat = Double.parseDouble(location[0]);
+                    Double lng = Double.parseDouble(location[1]);
+                    albMarkersOverlay.add(drawMarker(mapView, lat, lng, title, desc));
+                }
+            }
+        }
+//        mapView.invalidate();
+
+
+
+//        Iterator<String> iter = parent.keys();
+//        while (iter.hasNext()) {
+//            String key = iter.next();
+//            try {
+//                JSONObject v = parent.getJSONObject(key);
+//                String title = v.getString("albergue");
+//                String desc = v.getString("locality") + " " + v.getString("address");
+//                String alb_geo = v.getString("alb_geo");
+//                String[] location = new String[2];
+//                if (alb_geo.length() > 1) {
+//                    if (alb_geo.contains(", ") == true){
+//                        location = alb_geo.split(", ");
+//                    } else {
+//                        location = alb_geo.split(",");
+//                    }
+//                }
+//                Double lat = Double.parseDouble(location[0]);
+//                Double lng = Double.parseDouble(location[1]);
+//                drawMarker(mapView, lat, lng, title, desc);
+//            } catch (JSONException e) {
+//                // Something went wrong!
+//            }
+//        }
+////THis will store all the values inside "Hydrogen" in a element string
+//        String element = parent.getString("Hydrogen");
+//
+////THis will store "1" inside atomicNumber
+//        String atomicNumber = parent.getJSONObject("Hydrogen").getString("atomic_number");
     }
 
 }

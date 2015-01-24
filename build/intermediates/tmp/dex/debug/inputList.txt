@@ -1,12 +1,12 @@
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\classes\debug
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\support-annotations-21.0.3-14ab5281db1c18c4657320658a88cf8d6d379f03.jar
-C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmdroid-packager-4.2-d01c16f6d9dcce6f9c4e7eeb03fff735d8efd615.jar
+C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmdroid-packager-4.3-b6052e014811f5787a9b9232f0b2859b0b17a0a9.jar
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\slf4j-android-1.6.1-RC1-d67f41efd296db8bac56946972a3361655c80f93.jar
-C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmdroid-third-party-4.2-7fcaf474b27011542c97de6422c62990746f42a8.jar
+C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmdroid-third-party-4.3-f780bfa5d38e58dd6b8c096dd511812aa5ba1322.jar
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\gson-2.2.4-fe6b2d429acb86472ca4ed6c9ce6d0df720a20cc.jar
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\internal_impl-21.0.3-938fe11d0e01cb8d19d669d532ab1da648b24bb8.jar
-C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmbonuspack_v5.0-d3c2121129c763b118855b386d7683f75fa82bf0.jar
-C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmdroid-android-4.2-c900b9d1a458872a53e9e92c2edd63aa563da9da.jar
+C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmbonuspack_v5.1-530e791c10916b8c0f3b133e53e383ca418286f5.jar
+C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\osmdroid-android-4.3-de538f66bf6eb716e917501c4d6cb160f007b6ce.jar
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\commons-lang3-3.3.2-32291c705696770b98d2a7247cfdc727e967b837.jar
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\classes-848f73a2da7b1fd5276ecf9a5cd22a32c261cbe2.jar
 C:\Users\Tony\AndroidStudioProjects\EasyCaminoOfflineNavigator\build\intermediates\pre-dexed\debug\classes-9304f42f50901575f24ab2297a078310a85ce56d.jar
