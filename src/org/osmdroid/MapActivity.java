@@ -6,12 +6,15 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+
+import org.osmdroid.views.util.UnzipUtility;
 
 /**
  * Default map view activity.
@@ -37,6 +40,7 @@ public class MapActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
 
         this.setContentView(R.layout.main);
+
         geoOutTextViewLon = (TextView)findViewById(R.id.debugGeoOutputLon);
         geoOutTextViewLat = (TextView)findViewById(R.id.debugGeoOutputLat);
         geoOutTextViewTime = (TextView)findViewById(R.id.debugGeoOutputTime);
