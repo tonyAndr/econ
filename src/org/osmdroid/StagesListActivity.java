@@ -35,7 +35,7 @@ public class StagesListActivity extends ActionBarActivity {
         final ListView listView = (ListView) findViewById(R.id.stageslistview);
         listView.setAdapter(adapter);
         String name = new String();
-        for (int i = 1; i <= 32; i++) {
+        for (int i = 1; i <= 33; i++) {
             JSONObject fileObj = parseJSONObj("json/stage" + i + ".json");
             JSONObject stageObj = null;
             try {

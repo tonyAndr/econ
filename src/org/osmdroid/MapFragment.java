@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -37,42 +36,31 @@ import com.google.android.gms.location.LocationServices;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
+import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer;
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.bonuspack.overlays.Polyline;
-import org.osmdroid.bonuspack.routing.OSRMRoadManager;
-import org.osmdroid.bonuspack.routing.Road;
-import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.constants.OpenStreetMapConstants;
 import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
 import org.osmdroid.events.ZoomEvent;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MinimapOverlay;
-import org.osmdroid.views.overlay.Overlay;
-import org.osmdroid.views.overlay.PathOverlay;
 import org.osmdroid.views.overlay.ScaleBarOverlay;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
-import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer;
+import org.osmdroid.views.util.JsonFilesHandler;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 public class MapFragment extends Fragment implements OpenStreetMapConstants,
         ConnectionCallbacks, OnConnectionFailedListener, LocationListener
@@ -86,7 +74,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     private static final int MENU_SAMPLES = Menu.FIRST + 1;
     private static final int MENU_ABOUT = MENU_SAMPLES + 1;
     private static final int MENU_LAST_ID = MENU_ABOUT + 1; // Always set to last unused id
-    private static final int TRACK_ZOOM_LEVEL = 13;
+    private static final int TRACK_ZOOM_LEVEL = 14;
     private static final int DEFAULT_ZOOM_LEVEL = 13;
     private static final BoundingBoxE6 areaLimitSpain;
     private static final Integer[] mAvailableZoomLevels = {7,11,14,17};
@@ -114,7 +102,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 	private ScaleBarOverlay mScaleBarOverlay;
     private RotationGestureOverlay mRotationGestureOverlay;
     private ResourceProxy mResourceProxy;
-    private RadiusMarkerClusterer albMarkersOverlay;
+    private FolderOverlay albMarkersOverlay;
     private FolderOverlay cityMarkersOverlay;
 
 
@@ -157,7 +145,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         mResourceProxy = new ResourceProxyImpl(inflater.getContext().getApplicationContext());
         mMapView = new MapView(inflater.getContext(), 256, mResourceProxy);
         // Call this method to turn off hardware acceleration at the View level.
-        // setHardwareAccelerationOff();
+        setHardwareAccelerationOff();
         mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
 //        mMapView.setTileSource(new XYTileSource("MAPQUESTOSM",
 //                ResourceProxy.string.mapquest_osm, 0, 18, 256, ".jpg", new String[] {
@@ -186,10 +174,10 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
 
                 // Control overlays visibility
-                if (mMapView.getZoomLevel() == 16) {
+                if (mMapView.getZoomLevel() >= 16) {
                     albMarkersOverlay.setEnabled(true);
                     mMapView.invalidate();
-                } else if (mMapView.getZoomLevel() >= 14){
+                } else if (mMapView.getZoomLevel() >= 11){
                     cityMarkersOverlay.setEnabled(true);
                     mMapView.invalidate();
                 } else {
@@ -352,34 +340,12 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         // Put overlay items first
         mMapView.getOverlayManager().onCreateOptionsMenu(menu, MENU_LAST_ID, mMapView);
 
-        // Put samples next
-//		SubMenu samplesSubMenu = menu.addSubMenu(0, MENU_SAMPLES, Menu.NONE, R.string.samples)
-//				.setIcon(android.R.drawable.ic_menu_gallery);
-//		SampleFactory sampleFactory = SampleFactory.getInstance();
-//		for (int a = 0; a < sampleFactory.count(); a++) {
-//			final BaseSampleFragment f = sampleFactory.getSample(a);
-//			samplesSubMenu.add(f.getSampleTitle()).setOnMenuItemClickListener(
-//					new OnMenuItemClickListener() {
-//						@Override
-//						public boolean onMenuItemClick(MenuItem item) {
-//							startSampleFragment(f);
-//							return true;
-//						}
-//					});
-//		}
-
         // Put "About" menu item last
         menu.add(0, MENU_ABOUT, Menu.CATEGORY_SECONDARY, R.string.about).setIcon(
                 android.R.drawable.ic_menu_info_details);
 
         super.onCreateOptionsMenu(menu, inflater);
     }
-
-	protected void startSampleFragment(Fragment fragment) {
-		FragmentManager fm = getFragmentManager();
-		fm.beginTransaction().hide(this).add(android.R.id.content, fragment, "SampleFragment")
-				.addToBackStack(null).commit();
-	}
 
     @Override
     public void onPrepareOptionsMenu(final Menu pMenu)
@@ -486,13 +452,11 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
             ((MapActivity)getActivity()).geoOutTextViewLat.setText(lat);
             ((MapActivity)getActivity()).geoOutTextViewTime.setText(tim);
 
-
             GeoPoint point = new GeoPoint(mCurrentLocation);
             mMapView.getController().animateTo(point);
             if (mMapView.getZoomLevel() < TRACK_ZOOM_LEVEL) {
                 mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
             }
-
         }
     }
 
@@ -500,7 +464,6 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
      * Removes location updates from the FusedLocationApi.
      */
     protected void stopLocationUpdates() {
-
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
@@ -533,8 +496,6 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         updateUI();
-//        Toast.makeText(this, getResources().getString(R.string.location_updated_message),
-//                Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -554,7 +515,6 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         savedInstanceState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mRequestingLocationUpdates);
         savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
         savedInstanceState.putString(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
-
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -576,74 +536,9 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
     }
 
-    public JSONArray parseJSONArr(String filename) {
-        String JSONString = null;
-        JSONArray JSONArray = null;
-        try {
 
-            //open the inputStream to the file
-            InputStream inputStream = getActivity().getAssets().open(filename);
-
-            int sizeOfJSONFile = inputStream.available();
-
-            //array that will store all the data
-            byte[] bytes = new byte[sizeOfJSONFile];
-
-            //reading data into the array from the file
-            inputStream.read(bytes);
-
-            //close the input stream
-            inputStream.close();
-
-            JSONString = new String(bytes, "UTF-8");
-            JSONArray = new JSONArray(JSONString);
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        catch (JSONException x) {
-            x.printStackTrace();
-            return null;
-        }
-        return JSONArray;
-    }
-    public JSONObject parseJSONObj(String filename) {
-        String JSONString = null;
-        JSONObject JSONObject = null;
-        try {
-
-            //open the inputStream to the file
-            InputStream inputStream = getActivity().getAssets().open(filename);
-
-            int sizeOfJSONFile = inputStream.available();
-
-            //array that will store all the data
-            byte[] bytes = new byte[sizeOfJSONFile];
-
-            //reading data into the array from the file
-            inputStream.read(bytes);
-
-            //close the input stream
-            inputStream.close();
-
-            JSONString = new String(bytes, "UTF-8");
-            JSONObject = new JSONObject(JSONString);
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        catch (JSONException x) {
-            x.printStackTrace();
-            return null;
-        }
-        return JSONObject;
-    }
     public Marker drawAlbMarker(MapView mapView, Double lat, Double lng, String title, String desc) {
-
         GeoPoint mGeoP = new GeoPoint(lat, lng);
-
         // build a new marker pin
         Marker mPin = new Marker(mapView);
         mPin.setPosition(mGeoP);
@@ -674,9 +569,11 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     }
     public void drawRouteAndMarkers(MapView mapView) throws JSONException {
 
+        JsonFilesHandler jfh = new JsonFilesHandler(getActivity());
+
         // Drawing route, each stage on it's own overlay
         for (int i = 1; i <= 32; i++) {
-            JSONObject fileObj = parseJSONObj("json/stage"+i+".json");
+            JSONObject fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
                 JSONObject stageObj = fileObj.getJSONObject("gpx").getJSONObject("trk");
                     String name = stageObj.getString("name");
 
@@ -700,11 +597,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
 
         // Parent overlay for albergues markers
-        albMarkersOverlay = new RadiusMarkerClusterer(getActivity());
-        Drawable clusterIconD = getResources().getDrawable(R.drawable.ic_alb_cluster);
-        Bitmap clusterIcon = ((BitmapDrawable)clusterIconD).getBitmap();
-        albMarkersOverlay.setIcon(clusterIcon);
-        albMarkersOverlay.getTextPaint().setTextSize(14.0f);
+        albMarkersOverlay = new FolderOverlay(getActivity());
 
         // Parent overlay for city markers
         cityMarkersOverlay = new FolderOverlay(getActivity());
@@ -712,8 +605,8 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         //Get the JSON object from the data
         String alb_path = "json/albergues.json";
         String route_path = "json/route.json";
-        JSONArray albJArr = parseJSONArr(alb_path);
-        JSONArray routeJArr = parseJSONArr(route_path);
+        JSONArray albJArr = jfh.parseJSONArr(alb_path);
+        JSONArray routeJArr = jfh.parseJSONArr(route_path);
 
 //        Log.v("TEST", parent.toString());
         for (int i = 0; i < albJArr.length(); i++) {
