@@ -191,9 +191,9 @@
         }
       }
     ],
-    "trk": [
+    "trk": 
       {
-        "name": "ET10 Santo Domingo-Belorado",
+        "name": "Santo Domingo de la Calzada - Belorado",
         "extensions": {
           "gpxx:TrackExtension": { "gpxx:DisplayColor": "Blue" }
         },
@@ -1036,47 +1036,6 @@
             }
           ]
         }
-      },
-      {
-        "name": "ET10 Variante Albergue Villamayor",
-        "extensions": {
-          "gpxx:TrackExtension": { "gpxx:DisplayColor": "Magenta" }
-        },
-        "trkseg": {
-          "trkpt": [
-            {
-              "-lat": "42.428470579907298",
-              "-lon": "-3.134941421449184",
-              "ele": "783.10546875"
-            },
-            {
-              "-lat": "42.42868616245687",
-              "-lon": "-3.134924825280905",
-              "ele": "782.26953125"
-            },
-            {
-              "-lat": "42.428888333961368",
-              "-lon": "-3.134958017617464",
-              "ele": "781.6796875"
-            },
-            {
-              "-lat": "42.42979533970356",
-              "-lon": "-3.134698681533337",
-              "ele": "780.67578125"
-            },
-            {
-              "-lat": "42.431084727868438",
-              "-lon": "-3.134195432066917",
-              "ele": "776.00390625"
-            },
-            {
-              "-lat": "42.431044243276119",
-              "-lon": "-3.134096022695303",
-              "ele": "775.7890625"
-            }
-          ]
-        }
       }
-    ]
   }
 }

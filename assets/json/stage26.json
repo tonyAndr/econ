@@ -247,7 +247,7 @@
       }
     ],
     "trk": {
-      "name": "ET26 La Faba-Triacastela",
+      "name": "La Faba - Triacastela",
       "extensions": {
         "gpxx:TrackExtension": { "gpxx:DisplayColor": "Cyan" }
       },

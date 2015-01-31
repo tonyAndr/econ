@@ -204,7 +204,7 @@
       }
     ],
     "trk": {
-      "name": "ET13 Burgos-Hontanas",
+      "name": "Burgos - Hontanas",
       "extensions": {
         "gpxx:TrackExtension": { "gpxx:DisplayColor": "Blue" }
       },

@@ -11,8 +11,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.views.util.StagesAdapter;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 
@@ -30,21 +34,33 @@ public class StagesListActivity extends ActionBarActivity {
 // Attach the adapter to a ListView
         final ListView listView = (ListView) findViewById(R.id.stageslistview);
         listView.setAdapter(adapter);
-        StageListItem newStage = new StageListItem(1,"Burgos", "Logrono");
-        adapter.add(newStage);
-        adapter.add(newStage);
-        adapter.add(newStage);
-        adapter.add(newStage);
+        String name = new String();
+        for (int i = 1; i <= 32; i++) {
+            JSONObject fileObj = parseJSONObj("json/stage" + i + ".json");
+            JSONObject stageObj = null;
+            try {
+                stageObj = fileObj.getJSONObject("gpx").getJSONObject("trk");
+                name = stageObj.getString("name");
+                StageListItem newStage = new StageListItem(i, name);
+                adapter.add(newStage);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                TextView c = (TextView) view.findViewById(R.id.tv_stagenumber);
-                int stageId = Integer.parseInt(c.getText().toString().substring(6));
+                TextView sn = (TextView) view.findViewById(R.id.tv_stagenumber);
+                TextView ft = (TextView) view.findViewById(R.id.tv_from_to);
+                int stageId = Integer.parseInt(sn.getText().toString().substring(6));
+                String fromto = ft.getText().toString();
 //                Toast.makeText(getApplicationContext(), c.getText().toString().substring(6), Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(getApplicationContext(), StageActivity.class);
                 intent.putExtra("stageId", stageId);
+                intent.putExtra("fromto", fromto);
                 startActivity(intent);
             }
         });
@@ -54,7 +70,38 @@ public class StagesListActivity extends ActionBarActivity {
 
 
     }
+    public JSONObject parseJSONObj(String filename) {
+        String JSONString = null;
+        JSONObject JSONObject = null;
+        try {
 
+            //open the inputStream to the file
+            InputStream inputStream = this.getAssets().open(filename);
+
+            int sizeOfJSONFile = inputStream.available();
+
+            //array that will store all the data
+            byte[] bytes = new byte[sizeOfJSONFile];
+
+            //reading data into the array from the file
+            inputStream.read(bytes);
+
+            //close the input stream
+            inputStream.close();
+
+            JSONString = new String(bytes, "UTF-8");
+            JSONObject = new JSONObject(JSONString);
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        catch (JSONException x) {
+            x.printStackTrace();
+            return null;
+        }
+        return JSONObject;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

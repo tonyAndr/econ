@@ -147,9 +147,9 @@
         }
       }
     ],
-    "trk": [
+    "trk": 
       {
-        "name": "ET07 Torres del Rio-Logrono",
+        "name": "Torres del Río - Logroño",
         "extensions": {
           "gpxx:TrackExtension": { "gpxx:DisplayColor": "Red" }
         },
@@ -1452,37 +1452,7 @@
             }
           ]
         }
-      },
-      {
-        "name": "ET07 Variante Alb. Casa Mari",
-        "extensions": {
-          "gpxx:TrackExtension": { "gpxx:DisplayColor": "Red" }
-        },
-        "trkseg": {
-          "trkpt": [
-            {
-              "-lat": "42.550905793905258",
-              "-lon": "-2.273095697164536",
-              "ele": "457.7249755859375"
-            },
-            {
-              "-lat": "42.551227658987045",
-              "-lon": "-2.272513322532177",
-              "ele": "478.5234375"
-            },
-            {
-              "-lat": "42.551455898210406",
-              "-lon": "-2.271925415843725",
-              "ele": "475.0286865234375"
-            },
-            {
-              "-lat": "42.551691262051463",
-              "-lon": "-2.272099759429693",
-              "ele": "475.23828125"
-            }
-          ]
-        }
       }
-    ]
+    
   }
 }

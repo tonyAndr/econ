@@ -73,7 +73,7 @@ public class StagesAdapter extends ArrayAdapter<StageListItem> {
         // Populate the data into the template view using the data object
 //        viewHolder.tvNumber.setText(stage.number);
         viewHolder.tvStage.setText("Stage "+(stage.number < 10 ? "0"+stage.number : stage.number));
-        viewHolder.tvFromTo.setText(stage.start_point + " - " + stage.end_point);
+        viewHolder.tvFromTo.setText(stage.fromTo);
         // Return the completed view to render on screen
         return convertView;
     }

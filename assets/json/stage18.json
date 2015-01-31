@@ -136,9 +136,9 @@
         }
       }
     ],
-    "trk": [
+    "trk": 
       {
-        "name": "ET18a Sahagun-Reliegos",
+        "name": "Sahagun - Mansilla de las Mulas",
         "extensions": {
           "gpxx:TrackExtension": { "gpxx:DisplayColor": "Cyan" }
         },
@@ -573,17 +573,7 @@
               "-lat": "42.474693255499005",
               "-lon": "-5.353707801550627",
               "ele": "825.90966796875"
-            }
-          ]
-        }
-      },
-      {
-        "name": "ET18a-19 Variante Reliegos-Mansilla",
-        "extensions": {
-          "gpxx:TrackExtension": { "gpxx:DisplayColor": "Magenta" }
-        },
-        "trkseg": {
-          "trkpt": [
+            },
             {
               "-lat": "42.476298725232482",
               "-lon": "-5.342505220323801",
@@ -727,6 +717,5 @@
           ]
         }
       }
-    ]
   }
 }

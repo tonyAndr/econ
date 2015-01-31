@@ -203,7 +203,7 @@
       }
     ],
     "trk": {
-      "name": "ET24 Ponferrada-Villafranca del Bierzo",
+      "name": "Ponferrada - Villafranca del Bierzo",
       "extensions": {
         "gpxx:TrackExtension": { "gpxx:DisplayColor": "Magenta" }
       },

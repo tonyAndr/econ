@@ -675,35 +675,8 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     public void drawRouteAndMarkers(MapView mapView) throws JSONException {
 
         // Drawing route, each stage on it's own overlay
-        for (int i = 1; i <= 31; i++) {
+        for (int i = 1; i <= 32; i++) {
             JSONObject fileObj = parseJSONObj("json/stage"+i+".json");
-
-            if (fileObj.getJSONObject("gpx").get("trk") instanceof JSONArray) {
-                JSONArray stageArr = fileObj.getJSONObject("gpx").getJSONArray("trk");
-
-                for (int j = 0; j < stageArr.length(); j++) {
-                    JSONObject trk = stageArr.getJSONObject(j);
-                    String name = trk.getString("name");
-
-                        JSONArray geoArr = trk.getJSONObject("trkseg").getJSONArray("trkpt");
-
-                        ArrayList<GeoPoint> waypoints = new ArrayList<>();
-                        for (int h = 0; h < geoArr.length(); h++) {
-                            JSONObject trkpt = geoArr.getJSONObject(h);
-                            Double lat = trkpt.getDouble("-lat");
-                            Double lng = trkpt.getDouble("-lon");
-                            GeoPoint newPoint = new GeoPoint(lat, lng);
-                            waypoints.add(newPoint);
-                        }
-                        Polyline p = new Polyline(getActivity());
-                        p.setTitle(name);
-                        p.setColor(Color.CYAN);
-                        p.setWidth(5.0f);
-                        p.setPoints(waypoints);
-                        mapView.getOverlays().add(p);
-                }
-
-            } else if (fileObj.getJSONObject("gpx").get("trk") instanceof JSONObject) {
                 JSONObject stageObj = fileObj.getJSONObject("gpx").getJSONObject("trk");
                     String name = stageObj.getString("name");
 
@@ -719,13 +692,10 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
                     }
                     Polyline p = new Polyline(getActivity());
                     p.setTitle(name);
-                    p.setColor(Color.CYAN);
-                    p.setWidth(5.0f);
+                    p.setColor(Color.GREEN);
+                    p.setWidth(8.0f);
                     p.setPoints(waypoints);
                     mapView.getOverlays().add(p);
-
-            }
-
         }
 
 

@@ -11,20 +11,19 @@ import java.util.ArrayList;
  */
 public class StageListItem {
     public Integer number;
-    public String start_point;
-    public String end_point;
+    public String fromTo;
 
-    public StageListItem(Integer number, String start_point, String end_point) {
+
+    public StageListItem(Integer number, String fromTo) {
         this.number = number;
-        this.start_point = start_point;
-        this.end_point = end_point;
+        this.fromTo = fromTo;
+
     }
 
     public StageListItem(JSONObject object){
         try {
             this.number = object.getInt("number");
-            this.start_point = object.getString("start_point");
-            this.end_point = object.getString("end_point");
+            this.fromTo = object.getString("fromTo");
         } catch (JSONException e) {
             e.printStackTrace();
         }
