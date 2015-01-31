@@ -1,11 +1,18 @@
 package org.osmdroid;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.osmdroid.views.util.BroadcastNotifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -28,17 +35,13 @@ public class UnZipService extends IntentService {
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
      */
-//            Intent localIntent =
-//                    new Intent(BROADCAST_ACTION)
-//                            // Puts the status into the Intent
-//                            .putExtra(EXTENDED_DATA_STATUS, status);
-//            // Broadcasts the Intent to receivers in this app.
-//            LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
-
-    static final String path_tiles = Environment.getExternalStorageDirectory().getPath() + "/osmdroid/tiles/";
+//    private BroadcastNotifier mBroadcaster;
+    static final String path_osm = Environment.getExternalStorageDirectory().getPath() + "/osmdroid/";
 
     public UnZipService() {
+
         super("UnZipService");
+//        mBroadcaster = new BroadcastNotifier(getApplicationContext());
     }
 
     @Override
@@ -49,10 +52,19 @@ public class UnZipService extends IntentService {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), "Unzipping...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Installing map...", Toast.LENGTH_SHORT).show();
             }
         });
-        doUnzip(dataString, path_tiles);
+
+        doUnzip(dataString, path_osm);
+
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), "Map succesfully installed.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     public boolean doUnzip(String inputZipFile, String destinationDirectory)
@@ -114,6 +126,11 @@ public class UnZipService extends IntentService {
             e.printStackTrace();
             return false ;
         }
+        File sourceZipFile = new File(inputZipFile);
+        if (sourceZipFile.exists()) {
+            sourceZipFile.delete();
+        }
+
         return true;
     }
 }

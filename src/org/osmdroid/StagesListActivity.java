@@ -1,12 +1,16 @@
 package org.osmdroid;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import org.osmdroid.Stage;
 import org.osmdroid.views.util.StagesAdapter;
 
 import java.util.ArrayList;
@@ -20,21 +24,35 @@ public class StagesListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.stageslist);
 // Construct the data source
-        ArrayList<Stage> arrayOfUsers = new ArrayList<Stage>();
+        ArrayList<StageListItem> arrayOfStages = new ArrayList<StageListItem>();
 // Create the adapter to convert the array to views
-        StagesAdapter adapter = new StagesAdapter(this, arrayOfUsers);
+        StagesAdapter adapter = new StagesAdapter(this, arrayOfStages);
 // Attach the adapter to a ListView
-        ListView listView = (ListView) findViewById(R.id.stageslistview);
+        final ListView listView = (ListView) findViewById(R.id.stageslistview);
         listView.setAdapter(adapter);
-        Stage newStage = new Stage(1,"Burgos", "Logrono");
+        StageListItem newStage = new StageListItem(1,"Burgos", "Logrono");
         adapter.add(newStage);
         adapter.add(newStage);
         adapter.add(newStage);
         adapter.add(newStage);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView c = (TextView) view.findViewById(R.id.tv_stagenumber);
+                int stageId = Integer.parseInt(c.getText().toString().substring(6));
+//                Toast.makeText(getApplicationContext(), c.getText().toString().substring(6), Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(getApplicationContext(), StageActivity.class);
+                intent.putExtra("stageId", stageId);
+                startActivity(intent);
+            }
+        });
 //        JSONArray jsonArray = ...;
 //        ArrayList<Stage> newStages = Stage.fromJson(jsonArray);
 //        adapter.addAll(newStages);
+
+
     }
 
 

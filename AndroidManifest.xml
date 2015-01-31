@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.osmdroid">
+    package="org.osmdroid" >
 
     <uses-sdk
         android:minSdkVersion="16"
@@ -95,13 +95,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!--<activity android:name=".samples.SampleOSMContributor" >-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.VIEW" />-->
+        <!-- <activity android:name=".samples.SampleOSMContributor" > -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.VIEW" /> -->
 
-                <!--<category android:name="android.intent.category.DEFAULT" />-->
-            <!--</intent-filter>-->
-        <!--</activity>-->
+
+        <!-- <category android:name="android.intent.category.DEFAULT" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> -->
         <activity android:name=".samples.SampleWithTilesOverlay" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -119,17 +120,21 @@
         <activity
             android:name=".StagesListActivity"
             android:label="@string/title_activity_stages_list"
-            android:parentActivityName=".MapActivity">
+            android:parentActivityName=".MapActivity" >
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings">
-
+            android:label="@string/title_activity_settings" >
         </activity>
+
         <service
             android:name=".UnZipService"
-            android:exported="false"/>
+            android:exported="false" />
 
+        <activity
+            android:name=".StageActivity"
+            android:label="@string/title_activity_stage" >
+        </activity>
     </application>
 
 </manifest>

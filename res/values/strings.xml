@@ -37,5 +37,6 @@
     <string name="pref_title_locktouch">Lock accidental touching</string>
     <string name="pref_summary_locktouch">While following your location, any touch-actions will be ignored on map screen</string>
     <string name="title_activity_test">TestActivity</string>
+    <string name="title_activity_stage">StageActivity</string>
 
 </resources>

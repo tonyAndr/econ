@@ -16,13 +16,14 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:padding="12dp"
-            android:textSize="30sp"
+            android:textSize="0dp"
             android:layout_row="1"
             android:layout_column="1"
             android:layout_rowSpan="2"
             android:layout_marginLeft="16dp"
             android:layout_marginBottom="5dp"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:visibility="visible" />
         <TextView
             android:id="@+id/tv_stagenumber"
             android:layout_width="wrap_content"

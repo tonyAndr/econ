@@ -33,22 +33,18 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static org.osmdroid.views.util.UnzipUtility.unzip;
 
 public class SettingsActivity extends ActionBarActivity {
 
-    static final String mapsUrl = "http://alberguenajera.es/projects/ecn/Mapsforge2-11_2015-01-28_210011.zip";
+    static final String mapsUrl = "http://alberguenajera.es/projects/ecn/stage1.zip";
     static final String path_osmdroid = Environment.getExternalStorageDirectory().getPath() + "/osmdroid/";
     static DownloadManager downloadManager;
     BroadcastReceiver receiverDownloadComplete;
     BroadcastReceiver receiverNotificationClicked;
     static long myDownloadReference;
 
-    // Defines a custom Intent action
-    public static final String BROADCAST_ACTION = "com.example.android.threadsample.BROADCAST";
-
-    // Defines the key for the status "extra" in an Intent
-    public static final String EXTENDED_DATA_STATUS = "com.example.android.threadsample.STATUS";
+    private static final int UNZIP_STARTED_STATUS = 0;
+    private static final int UNZIP_FINISHED_STATUS = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +62,11 @@ public class SettingsActivity extends ActionBarActivity {
         }
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(mapsUrl));
         request.setTitle("Map download.");
-        request.setDescription("Map is being downloaded...");
+        request.setDescription("Downloading map...");
 
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_ONLY_COMPLETION);
-        request.setVisibleInDownloadsUi(true);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+//        request.setVisibleInDownloadsUi(true);
 
         String fileName = URLUtil.guessFileName(mapsUrl, null, MimeTypeMap.getFileExtensionFromUrl(mapsUrl));
 
@@ -136,13 +132,9 @@ public class SettingsActivity extends ActionBarActivity {
 
                     switch (status) {
                         case DownloadManager.STATUS_SUCCESSFUL:
-
-//                                start activity to display the downloaded image
-//                                Intent intentDisplay = new Intent(SettingsActivity.this,
-//                                        DisplayActivity.class);
-//                                intentDisplay.putExtra("uri", savedFilePath);
-//                                startActivity(intentDisplay);
-
+                            Toast.makeText(SettingsActivity.this,
+                                    "Map download complete.",
+                                    Toast.LENGTH_SHORT).show();
                             Intent mServiceIntent = new Intent(context, UnZipService.class);
                             mServiceIntent.setData(Uri.parse(savedFilePath));
                             startService(mServiceIntent);
@@ -205,12 +197,11 @@ public class SettingsActivity extends ActionBarActivity {
                 public boolean onPreferenceClick(Preference preference) {
                     //open browser or intent here
                     ((SettingsActivity)getActivity()).mapDownload();
+                    Toast.makeText(getActivity(), "Starting download process...", Toast.LENGTH_SHORT).show();
                     return false;
                 }
             });
         }
     }
-
-
 
 }

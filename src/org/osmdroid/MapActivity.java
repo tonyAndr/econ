@@ -14,7 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import org.osmdroid.views.util.UnzipUtility;
 
 /**
  * Default map view activity.

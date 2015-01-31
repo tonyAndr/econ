@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -51,6 +52,7 @@ import org.osmdroid.events.ZoomEvent;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.tileprovider.tilesource.XYTileSource;
+import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MinimapOverlay;
@@ -65,6 +67,7 @@ import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,7 +88,8 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     private static final int MENU_LAST_ID = MENU_ABOUT + 1; // Always set to last unused id
     private static final int TRACK_ZOOM_LEVEL = 13;
     private static final int DEFAULT_ZOOM_LEVEL = 13;
-
+    private static final BoundingBoxE6 areaLimitSpain;
+    private static final Integer[] mAvailableZoomLevels = {7,11,14,17};
 
     //GMS
     protected static final String TAG = "location-updates-sample";
@@ -121,6 +125,12 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     protected Boolean mRequestingLocationUpdates;
     protected String mLastUpdateTime;
 
+    static {
+        areaLimitSpain = new BoundingBoxE6(44.496505,
+                3.691406, 35.012002, -10.766602 );
+//        sPaint = new Paint();
+//        sPaint.setColor(Color.argb(50, 255, 0, 0));
+    }
 
 	public static MapFragment newInstance() {
 		MapFragment fragment = new MapFragment();
@@ -158,25 +168,28 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         mMapView.setUseDataConnection(false); //optional, but a good way to prevent loading from the network and test your zip loading.
         IMapController mapController = mMapView.getController();
         mapController.setZoom(8);
+        mMapView.setMinZoomLevel(7);
+        mMapView.setMaxZoomLevel(17);
         GeoPoint startPoint = new GeoPoint(42.4167413, -2.7294623999999885);
         mapController.setCenter(startPoint);
+        mMapView.setScrollableAreaLimit(areaLimitSpain);
 
         mMapView.setMapListener(new MapListener() {
-
-            List<Overlay> mapOverlays = mMapView.getOverlays();
 
             @Override
             public boolean onScroll(ScrollEvent scrollEvent) {
                 return false;
             }
-
             @Override
             public boolean onZoom(ZoomEvent zoomEvent) {
+                // 7,11,14,17 - available zooms defined in array
 
-                if (mMapView.getZoomLevel() > 12) {
+
+                // Control overlays visibility
+                if (mMapView.getZoomLevel() == 16) {
                     albMarkersOverlay.setEnabled(true);
                     mMapView.invalidate();
-                } else if (mMapView.getZoomLevel() > 10){
+                } else if (mMapView.getZoomLevel() >= 14){
                     cityMarkersOverlay.setEnabled(true);
                     mMapView.invalidate();
                 } else {
@@ -184,13 +197,9 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
                     cityMarkersOverlay.setEnabled(false);
                     mMapView.invalidate();
                 }
-
-
                 return false;
             }
         });
-
-
         buildGoogleApiClient();
         return mMapView;
     }
@@ -230,7 +239,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 		mRotationGestureOverlay.setEnabled(false);
 
         mMapView.setBuiltInZoomControls(true);
-        mMapView.setMultiTouchControls(true);
+        mMapView.setMultiTouchControls(false);
         mMapView.getOverlays().add(this.mLocationOverlay);
         mMapView.getOverlays().add(this.mCompassOverlay);
 //        mMapView.getOverlays().add(this.mMinimapOverlay);
