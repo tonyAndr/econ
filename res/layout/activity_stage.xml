@@ -1,80 +1,35 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="org.osmdroid.StageActivity">
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="200dip"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="20dp" />
+        android:layout_height="match_parent"
+        tools:context="org.osmdroid.Stages.StageActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_stagename"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textSize="@dimen/abc_text_size_body_1_material" />
+        <include
+            android:id="@+id/app_bar"
+            layout="@layout/app_bar" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_stagelength"
-        android:textSize="@dimen/abc_text_size_body_1_material"
-        android:layout_alignTop="@+id/tv_stagename"
-        android:layout_alignRight="@+id/chart"
-        android:layout_alignEnd="@+id/chart" />
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/linearLayout"
-        android:layout_marginTop="63dp"
-        android:layout_below="@+id/chart"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_gravity="left"
-            android:layout_height="wrap_content"
-            android:text="Show on map"
-            android:id="@+id/textView"
-            android:textSize="@dimen/abc_text_size_body_1_material"/>
-    <Switch
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/switch1"
-        android:layout_gravity="right" />
-    </LinearLayout>
+        <FrameLayout
+            android:id="@+id/stage_fragment_holder_id"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/app_bar"></FrameLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_kmdone"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textSize="@dimen/abc_text_size_body_1_material" />
+    </RelativeLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_kmleft"
-        android:textSize="@dimen/abc_text_size_body_1_material"
-        android:layout_below="@+id/tv_kmdone"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
-</RelativeLayout>
+    <fragment
+        android:id="@+id/fragment_nav_drawer"
+        android:name="org.osmdroid.NavigationDrawerLayout"
+        android:layout_width="@dimen/nav_drawer_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:layout="@layout/fragment_navigation_drawer_layout"
+        tools:layout="@layout/fragment_navigation_drawer_layout" />
+</android.support.v4.widget.DrawerLayout>
+

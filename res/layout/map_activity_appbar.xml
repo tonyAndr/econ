@@ -44,6 +44,35 @@
                 android:onClick="getMyLocationBtnHandler"
                 android:src="@drawable/define_location_icon" />
 
+            <ImageButton
+                android:id="@+id/zoomInBtn"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="right|bottom"
+                android:layout_marginBottom="160dp"
+                android:layout_marginRight="16dp"
+                android:background="#00ffffff"
+                android:baselineAlignBottom="false"
+                android:clickable="true"
+                android:src="@drawable/zoom_in" />
+            <ImageButton
+                android:id="@+id/zoomInBtn"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="right|bottom"
+                android:layout_marginBottom="100dp"
+                android:layout_marginRight="16dp"
+                android:background="#00ffffff"
+                android:baselineAlignBottom="false"
+                android:clickable="true"
+                android:src="@drawable/zoom_out" />
+
             <TextView
                 android:id="@+id/debugGeoOutputTime"
                 android:layout_width="wrap_content"

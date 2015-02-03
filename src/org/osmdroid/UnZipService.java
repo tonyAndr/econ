@@ -1,18 +1,9 @@
 package org.osmdroid;
 
 import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
-import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
-
-import org.osmdroid.views.util.BroadcastNotifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -35,27 +26,17 @@ public class UnZipService extends IntentService {
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
      */
-//    private BroadcastNotifier mBroadcaster;
     static final String path_osm = Environment.getExternalStorageDirectory().getPath() + "/osmdroid/";
 
     public UnZipService() {
 
         super("UnZipService");
-//        mBroadcaster = new BroadcastNotifier(getApplicationContext());
     }
 
     @Override
     protected void onHandleIntent(Intent workIntent) {
         String dataString = workIntent.getDataString();
         Log.v("IntentURI", dataString);
-//        Handler mHandler = new Handler(getMainLooper());
-//        mHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                Toast.makeText(getApplicationContext(), "Installing map...", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
         Intent intent = new Intent();
         intent.setAction("org.osmdroid.UnzipService");
         intent.putExtra("status", "Installing...");
@@ -63,14 +44,6 @@ public class UnZipService extends IntentService {
         doUnzip(dataString, path_osm);
         intent.putExtra("status", "Done!");
         sendBroadcast(intent);
-//
-//
-//        mHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                Toast.makeText(getApplicationContext(), "Map succesfully installed.", Toast.LENGTH_LONG).show();
-//            }
-//        });
     }
 
     public boolean doUnzip(String inputZipFile, String destinationDirectory)

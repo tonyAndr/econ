@@ -3,6 +3,7 @@ package org.osmdroid;
 
 import android.app.ActionBar;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 //import android.app.Fragment;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.app.Fragment;
 
+import org.osmdroid.Stages.StageActivity;
 import org.osmdroid.views.util.Information;
 import org.osmdroid.views.util.RecycleAdapter;
 
@@ -142,6 +144,7 @@ public class NavigationDrawerLayout extends Fragment implements RecycleAdapter.C
                 break;
             case 1:
                 Log.i("something", "do 1");
+                startActivity(new Intent(getActivity(), StageActivity.class));
                 break;
             case 2:
                 Log.i("something", "do 2");

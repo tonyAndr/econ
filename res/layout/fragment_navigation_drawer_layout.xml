@@ -6,7 +6,6 @@
     android:background="#EFEFEF"
     tools:context="org.osmdroid.NavigationDrawerLayout">
 
-    <!-- TODO: Update blank fragment layout -->
     <LinearLayout
         android:id="@+id/containerDrawerImage"
         android:layout_width="match_parent"

@@ -130,11 +130,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     {
         super.onCreate(savedInstanceState);
 
-        // GMS
-        mRequestingLocationUpdates = false;
-        mLastUpdateTime = "";
-        updateValuesFromBundle(savedInstanceState);
-        // -->
+
 
         setRetainInstance(true);
     }
@@ -142,6 +138,11 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
+        // GMS
+        mRequestingLocationUpdates = false;
+        mLastUpdateTime = "";
+        updateValuesFromBundle(savedInstanceState);
+        // -->
         mResourceProxy = new ResourceProxyImpl(inflater.getContext().getApplicationContext());
         mMapView = new MapView(inflater.getContext(), 256, mResourceProxy);
         // Call this method to turn off hardware acceleration at the View level.

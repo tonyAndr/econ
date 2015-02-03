@@ -117,11 +117,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".StagesListActivity"
-            android:label="@string/title_activity_stages_list"
-            android:parentActivityName=".MapActivity" >
-        </activity>
+
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" >
@@ -132,15 +128,16 @@
             android:exported="false" />
 
         <activity
-            android:name=".StageActivity"
+            android:name=".Stages.StageActivity"
             android:label="@string/title_activity_stage" >
         </activity>
 
-        <receiver android:name=".SettingsActivity$UnzipServiceReciever">
+        <receiver android:name=".SettingsActivity$UnzipServiceReciever" >
             <intent-filter>
-                <action android:name="org.osmdroid.UnzipService"></action>
+                <action android:name="org.osmdroid.UnzipService" />
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>

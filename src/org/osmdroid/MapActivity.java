@@ -1,17 +1,12 @@
 // Created by plusminus on 00:23:14 - 03.10.2008
 package org.osmdroid;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,6 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+
+import org.osmdroid.Stages.StageActivity;
 
 
 /**
@@ -115,7 +112,7 @@ public class MapActivity extends ActionBarActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_stages) {
-            Intent intent = new Intent(MapActivity.this, StagesListActivity.class);
+            Intent intent = new Intent(MapActivity.this, StageActivity.class);
             startActivity(intent);
             return true;
         }

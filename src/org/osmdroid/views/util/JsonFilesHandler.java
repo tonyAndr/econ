@@ -1,6 +1,7 @@
 package org.osmdroid.views.util;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,9 +24,9 @@ public class JsonFilesHandler {
         String JSONString = null;
         JSONArray JSONArray = null;
         try {
-
+            AssetManager assetManager = mContext.getAssets();
             //open the inputStream to the file
-            InputStream inputStream = mContext.getAssets().open(filename);
+            InputStream inputStream = assetManager.open(filename);
 
             int sizeOfJSONFile = inputStream.available();
 
@@ -56,8 +57,9 @@ public class JsonFilesHandler {
         JSONObject JSONObject = null;
         try {
 
+            AssetManager assetManager = mContext.getAssets();
             //open the inputStream to the file
-            InputStream inputStream = mContext.getAssets().open(filename);
+            InputStream inputStream = assetManager.open(filename);
 
             int sizeOfJSONFile = inputStream.available();
 
