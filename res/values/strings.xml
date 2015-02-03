@@ -38,5 +38,8 @@
     <string name="pref_summary_locktouch">While following your location, any touch-actions will be ignored on map screen</string>
     <string name="title_activity_test">TestActivity</string>
     <string name="title_activity_stage">StageActivity</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
 
 </resources>

@@ -48,23 +48,29 @@ public class UnZipService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
         String dataString = workIntent.getDataString();
         Log.v("IntentURI", dataString);
-        Handler mHandler = new Handler(getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "Installing map...", Toast.LENGTH_SHORT).show();
-            }
-        });
-
+//        Handler mHandler = new Handler(getMainLooper());
+//        mHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                Toast.makeText(getApplicationContext(), "Installing map...", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+        Intent intent = new Intent();
+        intent.setAction("org.osmdroid.UnzipService");
+        intent.putExtra("status", "Installing...");
+        sendBroadcast(intent);
         doUnzip(dataString, path_osm);
-
-
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "Map succesfully installed.", Toast.LENGTH_LONG).show();
-            }
-        });
+        intent.putExtra("status", "Done!");
+        sendBroadcast(intent);
+//
+//
+//        mHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                Toast.makeText(getApplicationContext(), "Map succesfully installed.", Toast.LENGTH_LONG).show();
+//            }
+//        });
     }
 
     public boolean doUnzip(String inputZipFile, String destinationDirectory)

@@ -164,7 +164,7 @@ public class StageActivity extends ActionBarActivity{
 
     private void chartSetup() {
         mChart = (LineChart) findViewById(R.id.chart);
-        mChart.setStartAtZero(true);
+        mChart.setStartAtZero(false);
         // disable the drawing of values into the chart
         mChart.setDrawYValues(false);
         mChart.setDrawBorder(false);
@@ -173,6 +173,7 @@ public class StageActivity extends ActionBarActivity{
         mChart.setDescription("");
         // enable value highlighting
         mChart.setHighlightEnabled(true);
+
         // enable touch gestures
         mChart.setTouchEnabled(false);
         // enable scaling and dragging
@@ -197,8 +198,8 @@ public class StageActivity extends ActionBarActivity{
         setAltData.setDrawCircles(false);
         setAltData.setLineWidth(2f);
         setAltData.setCircleSize(5f);
-        setAltData.setHighLightColor(Color.BLUE);
-        setAltData.setColor(Color.GREEN);
+        setAltData.setColor(Color.rgb(178,223,219));
+        setAltData.setHighLightColor(Color.rgb(255,87,34));
 
         xVals.addAll(xValsList);
 

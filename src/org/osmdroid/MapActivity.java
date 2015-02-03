@@ -1,14 +1,20 @@
 // Created by plusminus on 00:23:14 - 03.10.2008
 package org.osmdroid;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +35,9 @@ public class MapActivity extends ActionBarActivity
     public TextView geoOutTextViewLon;
     public TextView geoOutTextViewLat;
     public TextView geoOutTextViewTime;
+
+    private Toolbar toolbar;
+
     // ===========================================================
     // Constructors
     // ===========================================================
@@ -38,7 +47,14 @@ public class MapActivity extends ActionBarActivity
     {
         super.onCreate(savedInstanceState);
 
-        this.setContentView(R.layout.main);
+        this.setContentView(R.layout.map_activity_appbar);
+
+        toolbar = (Toolbar) findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        NavigationDrawerLayout drawerFragment = (NavigationDrawerLayout) getSupportFragmentManager().findFragmentById(R.id.fragment_nav_drawer);
+        drawerFragment.setUp(R.id.fragment_nav_drawer,(DrawerLayout)findViewById(R.id.drawer_layout), toolbar);
 
         geoOutTextViewLon = (TextView)findViewById(R.id.debugGeoOutputLon);
         geoOutTextViewLat = (TextView)findViewById(R.id.debugGeoOutputLat);

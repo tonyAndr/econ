@@ -204,4 +204,15 @@ public class SettingsActivity extends ActionBarActivity {
         }
     }
 
+    public static class UnzipServiceReciever extends BroadcastReceiver {
+
+        public  UnzipServiceReciever () {
+
+        }
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, intent.getStringExtra("status"), Toast.LENGTH_LONG).show();
+        }
+    }
+
 }

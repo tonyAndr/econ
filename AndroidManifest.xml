@@ -135,6 +135,12 @@
             android:name=".StageActivity"
             android:label="@string/title_activity_stage" >
         </activity>
+
+        <receiver android:name=".SettingsActivity$UnzipServiceReciever">
+            <intent-filter>
+                <action android:name="org.osmdroid.UnzipService"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
