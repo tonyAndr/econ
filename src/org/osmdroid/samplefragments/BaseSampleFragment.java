@@ -1,14 +1,14 @@
 package org.osmdroid.samplefragments;
 
-import org.osmdroid.ResourceProxy;
-import org.osmdroid.ResourceProxyImpl;
-import org.osmdroid.views.MapView;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.osmdroid.ResourceProxy;
+import org.osmdroid.map.ResourceProxyImpl;
+import org.osmdroid.views.MapView;
 
 public abstract class BaseSampleFragment extends Fragment {
 

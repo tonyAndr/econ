@@ -1,10 +1,10 @@
-package org.osmdroid;
-
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.overlay.OverlayItem;
+package org.osmdroid.samples;
 
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.overlay.OverlayItem;
 
 public class SampleOverlayItem extends OverlayItem {
 

@@ -1,12 +1,4 @@
-package org.osmdroid;
-
-import org.osmdroid.ResourceProxy.bitmap;
-import org.osmdroid.api.IMapView;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.ItemizedOverlay;
-import org.osmdroid.views.overlay.OverlayItem;
-import org.osmdroid.views.overlay.OverlayItem.HotspotPlace;
+package org.osmdroid.samples;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -16,6 +8,15 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.TextView;
+
+import org.osmdroid.DefaultResourceProxyImpl;
+import org.osmdroid.ResourceProxy.bitmap;
+import org.osmdroid.api.IMapView;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedOverlay;
+import org.osmdroid.views.overlay.OverlayItem;
+import org.osmdroid.views.overlay.OverlayItem.HotspotPlace;
 
 public class SampleItemizedOverlay extends ItemizedOverlay<SampleOverlayItem> implements
 		ItemizedOverlay.OnFocusChangeListener {

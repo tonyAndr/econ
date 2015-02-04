@@ -1,9 +1,12 @@
-package org.osmdroid;
+package org.osmdroid.map;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+
+import org.osmdroid.DefaultResourceProxyImpl;
+import org.osmdroid.R;
 
 /**
  * This is an extension of {@link org.osmdroid.DefaultResourceProxyImpl}

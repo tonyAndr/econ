@@ -1,26 +1,20 @@
 // Created by plusminus on 00:23:14 - 03.10.2008
-package org.osmdroid;
+package org.osmdroid.map;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -36,8 +30,9 @@ import com.google.android.gms.location.LocationServices;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osmdroid.R;
+import org.osmdroid.ResourceProxy;
 import org.osmdroid.api.IMapController;
-import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer;
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.bonuspack.overlays.Polyline;
@@ -49,6 +44,7 @@ import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
+import org.osmdroid.utils.JsonFilesHandler;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MinimapOverlay;
 import org.osmdroid.views.overlay.ScaleBarOverlay;
@@ -56,15 +52,13 @@ import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
-import org.osmdroid.views.util.JsonFilesHandler;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class MapFragment extends Fragment implements OpenStreetMapConstants,
-        ConnectionCallbacks, OnConnectionFailedListener, LocationListener
-{
+        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
     // ===========================================================
     // Constants
     // ===========================================================
@@ -77,7 +71,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     private static final int TRACK_ZOOM_LEVEL = 14;
     private static final int DEFAULT_ZOOM_LEVEL = 13;
     private static final BoundingBoxE6 areaLimitSpain;
-    private static final Integer[] mAvailableZoomLevels = {7,11,14,17};
+    private static final Integer[] mAvailableZoomLevels = {7, 11, 14, 17};
 
     //GMS
     protected static final String TAG = "location-updates-sample";
@@ -99,7 +93,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     private MyLocationNewOverlay mLocationOverlay;
     private CompassOverlay mCompassOverlay;
     private MinimapOverlay mMinimapOverlay;
-	private ScaleBarOverlay mScaleBarOverlay;
+    private ScaleBarOverlay mScaleBarOverlay;
     private RotationGestureOverlay mRotationGestureOverlay;
     private ResourceProxy mResourceProxy;
     private FolderOverlay albMarkersOverlay;
@@ -112,36 +106,37 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     public Location mCurrentLocation;
     protected Boolean mRequestingLocationUpdates;
     protected String mLastUpdateTime;
+    protected Boolean mFollowUserLocation;
 
     static {
         areaLimitSpain = new BoundingBoxE6(44.496505,
-                3.691406, 35.012002, -10.766602 );
+                3.691406, 35.012002, -10.766602);
 //        sPaint = new Paint();
 //        sPaint.setColor(Color.argb(50, 255, 0, 0));
     }
 
-	public static MapFragment newInstance() {
-		MapFragment fragment = new MapFragment();
-		return fragment;
-	}
+    public static MapFragment newInstance() {
+        MapFragment fragment = new MapFragment();
+        return fragment;
+    }
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
         setRetainInstance(true);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-    {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // GMS
+        mFollowUserLocation = false;
         mRequestingLocationUpdates = false;
         mLastUpdateTime = "";
         updateValuesFromBundle(savedInstanceState);
+        if (!mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = true;
+//            startLocationUpdates();
+        }
         // -->
         mResourceProxy = new ResourceProxyImpl(inflater.getContext().getApplicationContext());
         mMapView = new MapView(inflater.getContext(), 256, mResourceProxy);
@@ -169,23 +164,25 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
             public boolean onScroll(ScrollEvent scrollEvent) {
                 return false;
             }
+
             @Override
             public boolean onZoom(ZoomEvent zoomEvent) {
-                // 7,11,14,17 - available zooms defined in array
-
 
                 // Control overlays visibility
-                if (mMapView.getZoomLevel() >= 16) {
+                if (mMapView.getZoomLevel() >= 15) {
                     albMarkersOverlay.setEnabled(true);
                     mMapView.invalidate();
-                } else if (mMapView.getZoomLevel() >= 11){
+                } else if (mMapView.getZoomLevel() >= 11) {
                     cityMarkersOverlay.setEnabled(true);
                     mMapView.invalidate();
-                } else {
+                } else if (mMapView.getZoomLevel() < 15) {
                     albMarkersOverlay.setEnabled(false);
+                    mMapView.invalidate();
+                } else if (mMapView.getZoomLevel() < 11){
                     cityMarkersOverlay.setEnabled(false);
                     mMapView.invalidate();
                 }
+
                 return false;
             }
         });
@@ -194,20 +191,18 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setHardwareAccelerationOff()
-    {
+    private void setHardwareAccelerationOff() {
         // Turn off hardware acceleration here, or in manifest
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             mMapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState)
-    {
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         final Context context = this.getActivity();
-		final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        final DisplayMetrics dm = context.getResources().getDisplayMetrics();
 
         mPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
@@ -216,39 +211,35 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         this.mLocationOverlay = new MyLocationNewOverlay(context, new GpsMyLocationProvider(context),
                 mMapView);
 
-//      mMinimapOverlay = new MinimapOverlay(context, mMapView.getTileRequestCompleteHandler());
-//		mMinimapOverlay.setWidth(dm.widthPixels / 5);
-//		mMinimapOverlay.setHeight(dm.heightPixels / 5);
-
-		mScaleBarOverlay = new ScaleBarOverlay(context);
-		mScaleBarOverlay.setCentred(true);
-		mScaleBarOverlay.setScaleBarOffset(dm.widthPixels / 2, 10);
+        mScaleBarOverlay = new ScaleBarOverlay(context);
+        mScaleBarOverlay.setCentred(true);
+        mScaleBarOverlay.setScaleBarOffset(dm.widthPixels / 2, 10);
 
         mRotationGestureOverlay = new RotationGestureOverlay(context, mMapView);
-		mRotationGestureOverlay.setEnabled(false);
+        mRotationGestureOverlay.setEnabled(false);
 
         mMapView.setBuiltInZoomControls(true);
         mMapView.setMultiTouchControls(false);
         mMapView.getOverlays().add(this.mLocationOverlay);
         mMapView.getOverlays().add(this.mCompassOverlay);
-//        mMapView.getOverlays().add(this.mMinimapOverlay);
-		mMapView.getOverlays().add(this.mScaleBarOverlay);
+        mMapView.getOverlays().add(this.mScaleBarOverlay);
         mMapView.getOverlays().add(this.mRotationGestureOverlay);
 
 //        mMapView.getController().setZoom(mPrefs.getInt(PREFS_ZOOM_LEVEL, 8));
         mMapView.scrollTo(mPrefs.getInt(PREFS_SCROLL_X, 0), mPrefs.getInt(PREFS_SCROLL_Y, 0));
 
-		mLocationOverlay.enableMyLocation();
-		mCompassOverlay.enableCompass();
+        mLocationOverlay.enableMyLocation();
+        mCompassOverlay.enableCompass();
 
-        MapTouchOverlay mapTouchOverlay = new MapTouchOverlay(getActivity());
-        mMapView.getOverlays().add(mapTouchOverlay);
+//        MapTouchOverlay mapTouchOverlay = new MapTouchOverlay(getActivity());
+//        mMapView.getOverlays().add(mapTouchOverlay);
         try {
             drawRouteAndMarkers(mMapView);
 
             mMapView.invalidate();
         } catch (JSONException e) {
             e.printStackTrace();
+
         }
         albMarkersOverlay.setEnabled(false);
         cityMarkersOverlay.setEnabled(false);
@@ -257,40 +248,41 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     }
 
 
-    public class MapTouchOverlay extends org.osmdroid.views.overlay.Overlay {
-
-        public MapTouchOverlay(Context ctx) {super(ctx);}
-
-        @Override
-        protected void draw(Canvas canvas, MapView mapView, boolean b) {
-
-        }
-
-        @Override
-        public boolean onTouchEvent(MotionEvent e, MapView mapView) {
-            if(e.getAction() == MotionEvent.ACTION_MOVE) {
-                if (mRequestingLocationUpdates) {
-                    mRequestingLocationUpdates = false;
-                    stopLocationUpdates();
-                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
-                    toast.show();
-                }
-            }
-            if(e.getAction() == MotionEvent.ACTION_SCROLL) {
-                if (mRequestingLocationUpdates) {
-                    mRequestingLocationUpdates = false;
-                    stopLocationUpdates();
-                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
-                    toast.show();
-                }
-            }
-            return false;
-        }
-    }
+//    public class MapTouchOverlay extends org.osmdroid.views.overlay.Overlay {
+//
+//        public MapTouchOverlay(Context ctx) {
+//            super(ctx);
+//        }
+//
+//        @Override
+//        protected void draw(Canvas canvas, MapView mapView, boolean b) {
+//
+//        }
+//
+//        @Override
+//        public boolean onTouchEvent(MotionEvent e, MapView mapView) {
+//            if (e.getAction() == MotionEvent.ACTION_MOVE) {
+//                if (mRequestingLocationUpdates) {
+//                    mRequestingLocationUpdates = false;
+//                    stopLocationUpdates();
+//                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
+//                    toast.show();
+//                }
+//            }
+//            if (e.getAction() == MotionEvent.ACTION_SCROLL) {
+//                if (mRequestingLocationUpdates) {
+//                    mRequestingLocationUpdates = false;
+//                    stopLocationUpdates();
+//                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
+//                    toast.show();
+//                }
+//            }
+//            return false;
+//        }
+//    }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         final SharedPreferences.Editor edit = mPrefs.edit();
         edit.putString(PREFS_TILE_SOURCE, mMapView.getTileProvider().getTileSource().name());
         edit.putInt(PREFS_SCROLL_X, mMapView.getScrollX());
@@ -310,8 +302,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
@@ -325,19 +316,17 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
             mMapView.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
         }
         if (mPrefs.getBoolean(PREFS_SHOW_LOCATION, false)) {
-			this.mLocationOverlay.enableMyLocation();
+            this.mLocationOverlay.enableMyLocation();
         }
         if (mPrefs.getBoolean(PREFS_SHOW_COMPASS, false)) {
-			this.mCompassOverlay.enableCompass();
+            this.mCompassOverlay.enableCompass();
         }
-
 
 
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
-    {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Put overlay items first
         mMapView.getOverlayManager().onCreateOptionsMenu(menu, MENU_LAST_ID, mMapView);
 
@@ -349,29 +338,27 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     }
 
     @Override
-    public void onPrepareOptionsMenu(final Menu pMenu)
-    {
+    public void onPrepareOptionsMenu(final Menu pMenu) {
         mMapView.getOverlayManager().onPrepareOptionsMenu(pMenu, MENU_LAST_ID, mMapView);
         super.onPrepareOptionsMenu(pMenu);
     }
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		if (mMapView.getOverlayManager().onOptionsItemSelected(item, MENU_LAST_ID, mMapView))
-			return true;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mMapView.getOverlayManager().onOptionsItemSelected(item, MENU_LAST_ID, mMapView))
+            return true;
 
-		switch (item.getItemId()) {
-		case MENU_ABOUT:
-			getActivity().showDialog(DIALOG_ABOUT_ID);
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+        switch (item.getItemId()) {
+            case MENU_ABOUT:
+                getActivity().showDialog(DIALOG_ABOUT_ID);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
-	public MapView getMapView() {
-		return mMapView;
-	}
+    public MapView getMapView() {
+        return mMapView;
+    }
 
     // @Override
     // public boolean onTrackballEvent(final MotionEvent event) {
@@ -382,26 +369,15 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         Log.i(TAG, "Updating values from bundle");
         if (savedInstanceState != null) {
-            // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
-            // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
             if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
                 mRequestingLocationUpdates = savedInstanceState.getBoolean(
                         REQUESTING_LOCATION_UPDATES_KEY);
-//                setButtonsEnabledState();
             }
-
-            // Update the value of mCurrentLocation from the Bundle and update the UI to show the
-            // correct latitude and longitude.
             if (savedInstanceState.keySet().contains(LOCATION_KEY)) {
-                // Since LOCATION_KEY was found in the Bundle, we can be sure that mCurrentLocation
-                // is not null.
                 mCurrentLocation = savedInstanceState.getParcelable(LOCATION_KEY);
             }
-
-            // Update the value of mLastUpdateTime from the Bundle and update the UI.
             if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
                 mLastUpdateTime = savedInstanceState.getString(LAST_UPDATED_TIME_STRING_KEY);
-
             }
 //            updateUI();
         }
@@ -444,20 +420,19 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
      */
 
     private void updateUI() {
-        if (mCurrentLocation != null) {
             String lon = "Long: " + String.valueOf(mCurrentLocation.getLongitude());
             String lat = " Lat: " + String.valueOf(mCurrentLocation.getLatitude());
             String tim = " Time: " + mLastUpdateTime;
 
-            ((MapActivity)getActivity()).geoOutTextViewLon.setText(lon);
-            ((MapActivity)getActivity()).geoOutTextViewLat.setText(lat);
-            ((MapActivity)getActivity()).geoOutTextViewTime.setText(tim);
-
-            GeoPoint point = new GeoPoint(mCurrentLocation);
-            mMapView.getController().animateTo(point);
-            if (mMapView.getZoomLevel() < TRACK_ZOOM_LEVEL) {
-                mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
-            }
+            ((MapActivity) getActivity()).geoOutTextViewLon.setText(lon);
+            ((MapActivity) getActivity()).geoOutTextViewLat.setText(lat);
+            ((MapActivity) getActivity()).geoOutTextViewTime.setText(tim);
+    }
+    private void followUser() {
+        GeoPoint point = new GeoPoint(mCurrentLocation);
+        mMapView.getController().animateTo(point);
+        if (mMapView.getZoomLevel() < TRACK_ZOOM_LEVEL) {
+            mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
         }
     }
 
@@ -473,6 +448,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         super.onStart();
         mGoogleApiClient.connect();
     }
+
     @Override
     public void onStop() {
         super.onStop();
@@ -480,12 +456,12 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
             mGoogleApiClient.disconnect();
         }
     }
+
     @Override
     public void onConnected(Bundle connectionHint) {
         if (mCurrentLocation == null) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            //updateUI();
         }
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
@@ -497,6 +473,10 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         updateUI();
+        if (mFollowUserLocation != false) {
+            followUser();
+        }
+
     }
 
     @Override
@@ -521,10 +501,13 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
 
     public void onUseMapActivityBtnHandler() {
-        if (!mRequestingLocationUpdates) {
-            mRequestingLocationUpdates = true;
-            startLocationUpdates();
+        if (!mFollowUserLocation) {
+            mFollowUserLocation = true;
             Toast toast = Toast.makeText(getActivity(), "GPS Tracking On", Toast.LENGTH_LONG);
+            toast.show();
+        } else {
+            mFollowUserLocation = false;
+            Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
             toast.show();
         }
         if (mCurrentLocation != null) {
@@ -552,6 +535,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         // add new marker pin to map
         return mPin;
     }
+
     public Marker drawCityMarker(MapView mapView, Double lat, Double lng, String title, String snippet) {
 
         GeoPoint mGeoP = new GeoPoint(lat, lng);
@@ -568,6 +552,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         // add new marker pin to map
         return mPin;
     }
+
     public void drawRouteAndMarkers(MapView mapView) throws JSONException {
 
         JsonFilesHandler jfh = new JsonFilesHandler(getActivity());
@@ -575,25 +560,25 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
         // Drawing route, each stage on it's own overlay
         for (int i = 1; i <= 32; i++) {
             JSONObject fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
-                JSONObject stageObj = fileObj.getJSONObject("gpx").getJSONObject("trk");
-                    String name = stageObj.getString("name");
+            JSONObject stageObj = fileObj.getJSONObject("gpx").getJSONObject("trk");
+            String name = stageObj.getString("name");
 
-                    JSONArray geoArr = stageObj.getJSONObject("trkseg").getJSONArray("trkpt");
+            JSONArray geoArr = stageObj.getJSONObject("trkseg").getJSONArray("trkpt");
 
-                    ArrayList<GeoPoint> waypoints = new ArrayList<>();
-                    for (int h = 0; h < geoArr.length(); h++) {
-                        JSONObject trkpt = geoArr.getJSONObject(h);
-                        Double lat = trkpt.getDouble("-lat");
-                        Double lng = trkpt.getDouble("-lon");
-                        GeoPoint newPoint = new GeoPoint(lat, lng);
-                        waypoints.add(newPoint);
-                    }
-                    Polyline p = new Polyline(getActivity());
-                    p.setTitle(name);
-                    p.setColor(Color.GREEN);
-                    p.setWidth(8.0f);
-                    p.setPoints(waypoints);
-                    mapView.getOverlays().add(p);
+            ArrayList<GeoPoint> waypoints = new ArrayList<>();
+            for (int h = 0; h < geoArr.length(); h++) {
+                JSONObject trkpt = geoArr.getJSONObject(h);
+                Double lat = trkpt.getDouble("-lat");
+                Double lng = trkpt.getDouble("-lon");
+                GeoPoint newPoint = new GeoPoint(lat, lng);
+                waypoints.add(newPoint);
+            }
+            Polyline p = new Polyline(getActivity());
+            p.setTitle(name);
+            p.setColor(Color.GREEN);
+            p.setWidth(8.0f);
+            p.setPoints(waypoints);
+            mapView.getOverlays().add(p);
         }
 
 
@@ -619,7 +604,7 @@ public class MapFragment extends Fragment implements OpenStreetMapConstants,
 
                 String[] location = new String[2];
 
-                if (alb_geo.contains(", ") == true){
+                if (alb_geo.contains(", ") == true) {
                     location = alb_geo.split(", ");
                 } else {
                     location = alb_geo.split(",");

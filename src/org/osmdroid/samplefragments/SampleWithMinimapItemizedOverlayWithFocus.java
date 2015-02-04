@@ -1,22 +1,22 @@
 // Created by plusminus on 00:23:14 - 03.10.2008
 package org.osmdroid.samplefragments;
 
-import java.util.ArrayList;
-
-import org.osmdroid.RotationGestureOverlay;
-import org.osmdroid.api.IGeoPoint;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.overlay.ItemizedIconOverlay;
-import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
-import org.osmdroid.views.overlay.MinimapOverlay;
-import org.osmdroid.views.overlay.OverlayItem;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import org.osmdroid.api.IGeoPoint;
+import org.osmdroid.map.RotationGestureOverlay;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
+import org.osmdroid.views.overlay.MinimapOverlay;
+import org.osmdroid.views.overlay.OverlayItem;
+
+import java.util.ArrayList;
 
 /**
  *

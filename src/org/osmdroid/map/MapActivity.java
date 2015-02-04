@@ -1,5 +1,5 @@
 // Created by plusminus on 00:23:14 - 03.10.2008
-package org.osmdroid;
+package org.osmdroid.map;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -15,7 +15,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import org.osmdroid.Stages.StageActivity;
+import org.osmdroid.NavigationDrawerLayout;
+import org.osmdroid.R;
+import org.osmdroid.settings.SettingsActivity;
+import org.osmdroid.stages.StageActivity;
 
 
 /**

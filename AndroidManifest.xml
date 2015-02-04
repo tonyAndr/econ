@@ -56,7 +56,7 @@
             android:required="false" />
 
         <activity
-            android:name=".MapActivity"
+            android:name=".map.MapActivity"
             android:icon="@drawable/ecn_icon"
             android:label="Easy Camino Offline Navigator" >
             <intent-filter>
@@ -119,20 +119,20 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".settings.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
 
         <service
-            android:name=".UnZipService"
+            android:name=".settings.UnZipService"
             android:exported="false" />
 
         <activity
-            android:name=".Stages.StageActivity"
+            android:name=".stages.StageActivity"
             android:label="@string/title_activity_stage" >
         </activity>
 
-        <receiver android:name=".SettingsActivity$UnzipServiceReciever" >
+        <receiver android:name=".settings.SettingsActivity$UnzipServiceReciever" >
             <intent-filter>
                 <action android:name="org.osmdroid.UnzipService" />
             </intent-filter>

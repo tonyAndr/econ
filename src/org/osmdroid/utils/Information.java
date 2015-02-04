@@ -1,4 +1,4 @@
-package org.osmdroid.views.util;
+package org.osmdroid.utils;
 
 /**
  * Created by Tony on 01-Feb-15.

@@ -1,4 +1,4 @@
-package org.osmdroid.views.util;
+package org.osmdroid.utils;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

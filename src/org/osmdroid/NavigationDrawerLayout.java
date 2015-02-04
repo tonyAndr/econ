@@ -1,12 +1,11 @@
 package org.osmdroid;
 
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-//import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,14 +15,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.app.Fragment;
 
-import org.osmdroid.Stages.StageActivity;
-import org.osmdroid.views.util.Information;
-import org.osmdroid.views.util.RecycleAdapter;
+import org.osmdroid.stages.StageActivity;
+import org.osmdroid.utils.Information;
+import org.osmdroid.utils.RecycleAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+//import android.app.Fragment;
 
 
 /**

@@ -1,14 +1,14 @@
-package org.osmdroid;
-
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.IOverlayMenuProvider;
-import org.osmdroid.views.overlay.Overlay;
+package org.osmdroid.map;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.IOverlayMenuProvider;
+import org.osmdroid.views.overlay.Overlay;
 
 public class RotationGestureOverlay extends Overlay implements
         RotationGestureDetector.RotationListener, IOverlayMenuProvider

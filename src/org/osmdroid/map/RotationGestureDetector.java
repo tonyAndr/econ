@@ -1,4 +1,4 @@
-package org.osmdroid;
+package org.osmdroid.map;
 
 import android.view.MotionEvent;
 

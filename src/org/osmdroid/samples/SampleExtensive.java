@@ -1,17 +1,5 @@
 package org.osmdroid.samples;
 
-import org.osmdroid.R;
-import org.osmdroid.ResourceProxy;
-import org.osmdroid.ResourceProxyImpl;
-import org.osmdroid.api.IMapController;
-import org.osmdroid.constants.OpenStreetMapConstants;
-import org.osmdroid.tileprovider.tilesource.ITileSource;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.MinimapOverlay;
-import org.osmdroid.views.overlay.ScaleBarOverlay;
-import org.osmdroid.views.overlay.SimpleLocationOverlay;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -22,6 +10,18 @@ import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+
+import org.osmdroid.R;
+import org.osmdroid.ResourceProxy;
+import org.osmdroid.api.IMapController;
+import org.osmdroid.constants.OpenStreetMapConstants;
+import org.osmdroid.map.ResourceProxyImpl;
+import org.osmdroid.tileprovider.tilesource.ITileSource;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.MinimapOverlay;
+import org.osmdroid.views.overlay.ScaleBarOverlay;
+import org.osmdroid.views.overlay.SimpleLocationOverlay;
 
 /**
  *
