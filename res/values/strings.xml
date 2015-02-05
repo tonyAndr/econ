@@ -43,4 +43,40 @@
     <string name="drawer_close">Close</string>
     <string name="title_activity_stage_portrait">StagePortraitActivity</string>
 
+    <string-array name="stage_names">
+        <item>Saint Jean Pied de Port - Roncesvalles</item>
+        <item>Roncesvalles - Larrasoña</item>
+        <item>Larrasoña - Cizur Menor</item>
+        <item>Cizur Menor - Obanos</item>
+        <item>Obanos - Estella</item>
+        <item>Estella - Torres del Rio</item>
+        <item>Torres del Río - Logroño</item>
+        <item>Logroño - Nájera</item>
+        <item>Nájera - Santo Domingo de la Calzada</item>
+        <item>Santo Domingo de la Calzada - Belorado</item>
+        <item>Belorado - San Juan de Ortega</item>
+        <item>San Juan de Ortega - Burgos</item>
+        <item>Burgos - Hontanas</item>
+        <item>Hontanas - Boadilla del Camino</item>
+        <item>Boadilla del Camino - Carrión de los Condes</item>
+        <item>Carrión de los Condes - Terradillos de los Templarios</item>
+        <item>Terradillos de los Templarios - Sahagun</item>
+        <item>Sahagun - Mansilla de las Mulas</item>
+        <item>Mansilla de las Mulas - León</item>
+        <item>León - San Martín del Camino</item>
+        <item>San Martín del Camino - Astorga</item>
+        <item>Astorga - Foncebadón</item>
+        <item>Foncebadón - Ponferrada</item>
+        <item>Ponferrada - Villafranca del Bierzo</item>
+        <item>Villafranca del Bierzo - La Faba</item>
+        <item>La Faba - Triacastela</item>
+        <item>Triacastela - Sarria</item>
+        <item>Sarria - Portomarín</item>
+        <item>Portomarín - Palas de Rei</item>
+        <item>Palas de Rei - Arzúa</item>
+        <item>Arzúa - Pedrouzo</item>
+        <item>Pedrouzo - Santiago de Compostela</item>
+        <item>Test stage</item>
+    </string-array>
+
 </resources>

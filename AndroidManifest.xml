@@ -126,7 +126,9 @@
         <service
             android:name=".settings.UnZipService"
             android:exported="false" />
-
+        <service
+            android:name=".map.GeoService"
+            android:exported="false" />
         <activity
             android:name=".stages.StageActivity"
             android:label="@string/title_activity_stage" >

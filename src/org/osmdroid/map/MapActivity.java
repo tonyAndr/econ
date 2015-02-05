@@ -62,7 +62,7 @@ public class MapActivity extends ActionBarActivity
         FragmentManager fm = this.getSupportFragmentManager();
 
 		if (fm.findFragmentByTag(MAP_FRAGMENT_TAG) == null) {
-			MapFragment mapFragment = MapFragment.newInstance();
+			OSMFragment mapFragment = OSMFragment.newInstance();
 			fm.beginTransaction().add(R.id.map_container, mapFragment, MAP_FRAGMENT_TAG).commit();
 		}
     }
@@ -94,7 +94,7 @@ public class MapActivity extends ActionBarActivity
         FragmentManager fm = this.getSupportFragmentManager();
 
         if (fm.findFragmentByTag(MAP_FRAGMENT_TAG) != null) {
-            MapFragment mapFragment = (MapFragment)fm.findFragmentByTag(MAP_FRAGMENT_TAG);
+            OSMFragment mapFragment = (OSMFragment)fm.findFragmentByTag(MAP_FRAGMENT_TAG);
             mapFragment.onUseMapActivityBtnHandler();
         }
     }
