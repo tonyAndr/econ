@@ -16,9 +16,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.osmdroid.settings.MapManagerActivity;
 import org.osmdroid.stages.StageActivity;
-import org.osmdroid.utils.Information;
-import org.osmdroid.utils.RecycleAdapter;
+import org.osmdroid.utils.DrawRecycleAdapter;
+import org.osmdroid.utils.DrawRecycleInformation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NavigationDrawerLayout extends Fragment implements RecycleAdapter.ClickListener {
+public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapter.ClickListener {
 
     private RecyclerView recyclerView;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -37,7 +38,7 @@ public class NavigationDrawerLayout extends Fragment implements RecycleAdapter.C
     private boolean mUserLearnedDrawer;
     private boolean mFromSavedInstanceState;
     private View containerView;
-    private RecycleAdapter adapter;
+    private DrawRecycleAdapter adapter;
     private boolean isDrawerOpened = false;
 
 
@@ -63,20 +64,19 @@ public class NavigationDrawerLayout extends Fragment implements RecycleAdapter.C
         // Inflate the layout for this fragment
         View layout = inflater.inflate(R.layout.fragment_navigation_drawer_layout, container, false);
         recyclerView = (RecyclerView) layout.findViewById(R.id.drawerList);
-        adapter = new RecycleAdapter(getActivity(), getData());
+        adapter = new DrawRecycleAdapter(getActivity(), getData());
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         return layout;
     }
-
-    public static List<Information> getData() {
+    public static List<DrawRecycleInformation> getData() {
         //load only static data inside a drawer
-        List<Information> data = new ArrayList<>();
+        List<DrawRecycleInformation> data = new ArrayList<>();
         int icon = R.drawable.list_circle;
-        String[] titles = {"Map", "Stages", "Settings", "Feedback", "About"};
+        String[] titles = {"Map", "Stages", "Maplist", "Settings", "Feedback", "About"};
         for (int i = 0; i < titles.length; i++) {
-            Information current = new Information();
+            DrawRecycleInformation current = new DrawRecycleInformation();
             current.iconId = icon;
             current.title = titles[i];
             data.add(current);
@@ -148,6 +148,7 @@ public class NavigationDrawerLayout extends Fragment implements RecycleAdapter.C
                 break;
             case 2:
                 Log.i("something", "do 2");
+                startActivity(new Intent(getActivity(), MapManagerActivity.class));
                 break;
             case 3:
                 Log.i("something", "do 3");

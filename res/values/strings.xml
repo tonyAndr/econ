@@ -79,4 +79,11 @@
         <item>Test stage</item>
     </string-array>
 
+    <string name="title_activity_map_manager">MapManagerActivity</string>
+    <string name="action_delete">Delete maps</string>
+    <string name="action_delete_fragment">Delete maps</string>
+    <string name="action_download_map">Download selected</string>
+    <string name="action_download_fragment">Download maps</string>
+    <string name="action_delete_map">Delete selected</string>
+
 </resources>

@@ -98,8 +98,8 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
     public BroadcastReceiver br;
 
     static {
-        areaLimitSpain = new BoundingBoxE6(44.496505,
-                3.691406, 35.012002, -10.766602);
+        areaLimitSpain = new BoundingBoxE6(43.78,
+                -0.04, 37.4, -9.338);
 //        sPaint = new Paint();
 //        sPaint.setColor(Color.argb(50, 255, 0, 0));
     }
@@ -384,15 +384,6 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
 
         }
     }
-
-
-//    @Override
-//    public void onLocationChanged(Location location) {
-//        mCurrentLocation = location;
-//        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-//
-//
-//    }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {

@@ -47,78 +47,25 @@
         android:theme="@style/AppTheme" >
 
         <!-- all applications based on this code should get their own Bing key -->
-        <meta-data
-            android:name="BING_KEY"
-            android:value="ApEqyap8rTa4WTNCNv-3pAGQc7XUsHS6595tuDI3MHR59QlahJ5bqYGYhMYJq6Ae" />
 
         <uses-library
             android:name="com.google.android.maps"
             android:required="false" />
 
         <activity
+            android:launchMode="singleInstance"
             android:name=".map.MapActivity"
             android:icon="@drawable/ecn_icon"
-            android:label="Easy Camino Offline Navigator" >
+            android:label="Camino Albergues Navigator" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".samples.SampleLoader"
-            android:label="OSMSamples" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".samples.SampleWithMinimapItemizedoverlay" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".samples.SampleExtensive" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".samples.SampleWithMinimapZoomcontrols" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <!-- <activity android:name=".samples.SampleOSMContributor" > -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="android.intent.action.VIEW" /> -->
-
-
-        <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-        <!-- </intent-filter> -->
-        <!-- </activity> -->
-        <activity android:name=".samples.SampleWithTilesOverlay" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".samples.SampleWithTilesOverlayAndCustomTileSource" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
 
         <activity
+            android:launchMode="singleInstance"
             android:name=".settings.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
@@ -129,17 +76,18 @@
         <service
             android:name=".map.GeoService"
             android:exported="false" />
+
         <activity
+            android:launchMode="singleInstance"
             android:name=".stages.StageActivity"
             android:label="@string/title_activity_stage" >
         </activity>
 
-        <receiver android:name=".settings.SettingsActivity$UnzipServiceReciever" >
-            <intent-filter>
-                <action android:name="org.osmdroid.UnzipService" />
-            </intent-filter>
-        </receiver>
-
+        <activity
+            android:launchMode="singleInstance"
+            android:name=".settings.MapManagerActivity"
+            android:label="@string/title_activity_map_manager" >
+        </activity>
     </application>
 
 </manifest>
