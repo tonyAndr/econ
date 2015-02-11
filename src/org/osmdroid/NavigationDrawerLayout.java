@@ -16,7 +16,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.osmdroid.settings.MapManagerActivity;
+import org.osmdroid.map.MapActivity;
+import org.osmdroid.settings.SettingsActivity;
 import org.osmdroid.stages.StageActivity;
 import org.osmdroid.utils.DrawRecycleAdapter;
 import org.osmdroid.utils.DrawRecycleInformation;
@@ -74,7 +75,7 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
         //load only static data inside a drawer
         List<DrawRecycleInformation> data = new ArrayList<>();
         int icon = R.drawable.list_circle;
-        String[] titles = {"Map", "Stages", "Maplist", "Settings", "Feedback", "About"};
+        String[] titles = {"Map", "Stages", "Settings", "Feedback", "About"};
         for (int i = 0; i < titles.length; i++) {
             DrawRecycleInformation current = new DrawRecycleInformation();
             current.iconId = icon;
@@ -138,17 +139,19 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
 
     @Override
     public void itemClicked(View view, int position) {
+        mDrawerLayout.closeDrawer(containerView);
         switch (position) {
             case 0:
-                Log.i("something", "do 1");
+//                Log.i("something", "do 1");
+                startActivity(new Intent(getActivity(), MapActivity.class));
                 break;
             case 1:
-                Log.i("something", "do 1");
+//                Log.i("something", "do 1");
                 startActivity(new Intent(getActivity(), StageActivity.class));
                 break;
             case 2:
-                Log.i("something", "do 2");
-                startActivity(new Intent(getActivity(), MapManagerActivity.class));
+//                Log.i("something", "do 2");
+                startActivity(new Intent(getActivity(), SettingsActivity.class));
                 break;
             case 3:
                 Log.i("something", "do 3");

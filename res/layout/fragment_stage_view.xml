@@ -1,57 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:layout_height="match_parent"
     tools:context="org.osmdroid.stages.StageActivity">
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart"
+
+    <ListView
+        android:id="@+id/lv_albergues"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="20dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_stagename"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textSize="@dimen/abc_text_size_body_1_material" />
+        android:layout_below="@+id/tv_kmleft">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_stagelength"
-        android:textSize="@dimen/abc_text_size_body_1_material"
-        android:layout_alignTop="@+id/tv_stagename"
-        android:layout_alignRight="@+id/chart"
-        android:layout_alignEnd="@+id/chart" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_kmdone"
-        android:layout_below="@id/chart"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textSize="@dimen/abc_text_size_body_1_material" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tv_kmleft"
-        android:textSize="@dimen/abc_text_size_body_1_material"
-        android:layout_below="@+id/tv_kmdone"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        </ListView>
 
 </RelativeLayout>

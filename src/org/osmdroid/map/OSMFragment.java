@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
@@ -18,8 +19,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -30,11 +33,10 @@ import org.osmdroid.ResourceProxy;
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.bonuspack.overlays.Polyline;
-import org.osmdroid.constants.OpenStreetMapConstants;
+import org.osmdroid.constants.AppConstants;
 import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
 import org.osmdroid.events.ZoomEvent;
-import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
@@ -49,7 +51,7 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
 
-public class OSMFragment extends Fragment implements OpenStreetMapConstants{
+public class OSMFragment extends Fragment implements AppConstants {
     // ===========================================================
     // Constants
     // ===========================================================
@@ -59,7 +61,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
     private static final int MENU_SAMPLES = Menu.FIRST + 1;
     private static final int MENU_ABOUT = MENU_SAMPLES + 1;
     private static final int MENU_LAST_ID = MENU_ABOUT + 1; // Always set to last unused id
-    private static final int TRACK_ZOOM_LEVEL = 14;
+    private static final int TRACK_ZOOM_LEVEL = 13;
     private static final int DEFAULT_ZOOM_LEVEL = 13;
     private static final BoundingBoxE6 areaLimitSpain;
 
@@ -85,8 +87,13 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
     private ScaleBarOverlay mScaleBarOverlay;
     private RotationGestureOverlay mRotationGestureOverlay;
     private ResourceProxy mResourceProxy;
-    private FolderOverlay albMarkersOverlay;
-    private FolderOverlay cityMarkersOverlay;
+    public FolderOverlay albMarkersOverlay;
+    public FolderOverlay cityMarkersOverlay;
+    public Polyline routeOverlay;
+
+
+    private ImageButton mZoomIn;
+    private ImageButton mZoomOut;
 
 
     // GMS
@@ -96,10 +103,12 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
     private Intent mServiceIntent;
 
     public BroadcastReceiver br;
+    SharedPreferences mSettings;
+    private JsonFilesHandler jfh;
 
     static {
         areaLimitSpain = new BoundingBoxE6(43.78,
-                -0.04, 37.4, -9.338);
+                -0.54, 41.0, -9.338);
 //        sPaint = new Paint();
 //        sPaint.setColor(Color.argb(50, 255, 0, 0));
     }
@@ -118,6 +127,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // GMS
+
         mFollowUserLocation = false;
         mLastUpdateTime = "";
         updateValuesFromBundle(savedInstanceState);
@@ -146,17 +156,17 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
         getActivity().registerReceiver(br, intFilt);
 
 
-        mMapView = new MapView(inflater.getContext(), 256);
+        return inflater.inflate(R.layout.fragment_osm_map, container, false);
+//        mMapView = new MapView(inflater.getContext(), 256);
 //        setHardwareAccelerationOff();
-        setUpMapView();
-        return mMapView;
+//        return mMapView;
     }
 
     private void setUpMapView() {
         mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
         mMapView.setUseDataConnection(false); //optional, but a good way to prevent loading from the network and test your zip loading.
-        mMapView.getController().setZoom(8);
-        mMapView.setMinZoomLevel(8);
+        mMapView.getController().setZoom(9);
+        mMapView.setMinZoomLevel(9);
         mMapView.setMaxZoomLevel(18);
         GeoPoint startPoint = new GeoPoint(42.4167413, -2.7294623);
         mMapView.getController().setCenter(startPoint);
@@ -192,17 +202,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
         });
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setHardwareAccelerationOff() {
-        // Turn off hardware acceleration here, or in manifest
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-            mMapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
+    private void setMapViewPreferences() {
         final Context context = this.getActivity();
 
         final DisplayMetrics dm = context.getResources().getDisplayMetrics();
@@ -221,7 +221,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
         mRotationGestureOverlay = new RotationGestureOverlay(context, mMapView);
         mRotationGestureOverlay.setEnabled(false);
 
-        mMapView.setBuiltInZoomControls(true);
+        mMapView.setBuiltInZoomControls(false);
         mMapView.setMultiTouchControls(false);
         mMapView.getOverlays().add(this.mLocationOverlay);
         mMapView.getOverlays().add(this.mCompassOverlay);
@@ -234,11 +234,18 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
         mLocationOverlay.enableMyLocation();
         mCompassOverlay.enableCompass();
 
-//        MapTouchOverlay mapTouchOverlay = new MapTouchOverlay(getActivity());
+        MapTouchOverlay mapTouchOverlay = new MapTouchOverlay(getActivity());
 //        mMapView.getOverlays().add(mapTouchOverlay);
-        try {
-            drawRouteAndMarkers(mMapView);
+//        if (mSettings.getBoolean("pref_key_stop_follow", true)) {
+//            mapTouchOverlay.setEnabled(true);
+//        }
+//        else {
+//            mapTouchOverlay.setEnabled(false);
+//        }
 
+        try {
+            drawMarkers();
+            drawRoute(0);
             mMapView.invalidate();
         } catch (JSONException e) {
             e.printStackTrace();
@@ -246,49 +253,96 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
         }
         albMarkersOverlay.setEnabled(false);
         cityMarkersOverlay.setEnabled(false);
+    }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void setHardwareAccelerationOff() {
+        // Turn off hardware acceleration here, or in manifest
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            mMapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mMapView = (MapView) getActivity().findViewById(R.id.osm_mapview);
+        setUpMapView();
+        mZoomIn = (ImageButton)getActivity().findViewById(R.id.zoomInBtn);
+        mZoomOut = (ImageButton)getActivity().findViewById(R.id.zoomOutBtn);
+        jfh = new JsonFilesHandler(getActivity());
+        final int[] zoomLevels = {9, 10, 11, 13, 15, 18};
+        mZoomIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int id = mMapView.getZoomLevel();
+                for (int i = 0; i < zoomLevels.length; i++) {
+                    if (zoomLevels[i] == mMapView.getZoomLevel()) {
+                        id = i;
+                    }
+                }
+                if ((id + 1 >= 0) && (id + 1 < zoomLevels.length)) {
+//                    mMapView.mI
+                            mMapView.getController().setZoom(zoomLevels[id + 1]);
+                    Toast.makeText(getActivity(), "Zoomed in to: " + zoomLevels[id + 1], Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        mZoomOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int id = mMapView.getZoomLevel();
+                for (int i = 0; i < zoomLevels.length; i++) {
+                    if (zoomLevels[i] == mMapView.getZoomLevel()) {
+                        id = i;
+                    }
+                }
+                if ((id-1 >= 0) && (id-1 < zoomLevels.length)) {
+                    mMapView.getController().setZoom(zoomLevels[id-1]);
+                  Toast.makeText(getActivity(), "Zoomed out to: " + zoomLevels[id - 1], Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        setMapViewPreferences();
         setHasOptionsMenu(true);
     }
 
+    public class MapTouchOverlay extends org.osmdroid.views.overlay.Overlay {
 
-//    public class MapTouchOverlay extends org.osmdroid.views.overlay.Overlay {
-//
-//        public MapTouchOverlay(Context ctx) {
-//            super(ctx);
-//        }
-//
-//        @Override
-//        protected void draw(Canvas canvas, MapView mapView, boolean b) {
-//
-//        }
-//
-//        @Override
-//        public boolean onTouchEvent(MotionEvent e, MapView mapView) {
-//            if (e.getAction() == MotionEvent.ACTION_MOVE) {
-//                if (mRequestingLocationUpdates) {
-//                    mRequestingLocationUpdates = false;
-//                    stopLocationUpdates();
-//                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
-//                    toast.show();
-//                }
-//            }
-//            if (e.getAction() == MotionEvent.ACTION_SCROLL) {
-//                if (mRequestingLocationUpdates) {
-//                    mRequestingLocationUpdates = false;
-//                    stopLocationUpdates();
-//                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_LONG);
-//                    toast.show();
-//                }
-//            }
-//            return false;
-//        }
-//    }
+        public MapTouchOverlay(Context ctx) {
+            super(ctx);
+        }
+
+        @Override
+        protected void draw(Canvas canvas, MapView mapView, boolean b) {
+
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent e, MapView mapView) {
+            if (e.getAction() == MotionEvent.ACTION_MOVE) {
+                if (mFollowUserLocation) {
+                    mFollowUserLocation = false;
+                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }
+            if (e.getAction() == MotionEvent.ACTION_SCROLL) {
+                if (mFollowUserLocation) {
+                    mFollowUserLocation = false;
+                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }
+            return false;
+        }
+    }
 
     @Override
     public void onPause() {
         super.onPause();
         final SharedPreferences.Editor edit = mPrefs.edit();
-        edit.putString(PREFS_TILE_SOURCE, mMapView.getTileProvider().getTileSource().name());
+//        edit.putString(PREFS_TILE_SOURCE, mMapView.getTileProvider().getTileSource().name());
         edit.putInt(PREFS_SCROLL_X, mMapView.getScrollX());
         edit.putInt(PREFS_SCROLL_Y, mMapView.getScrollY());
         edit.putInt(PREFS_ZOOM_LEVEL, mMapView.getZoomLevel());
@@ -302,7 +356,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
 
         this.mLocationOverlay.disableMyLocation();
         this.mCompassOverlay.disableCompass();
-
+//        prefs.unregisterOnSharedPreferenceChangeListener(this);
         getActivity().stopService(mServiceIntent);
     }
 
@@ -310,14 +364,16 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
     public void onResume() {
         super.onResume();
 
-        final String tileSourceName = mPrefs.getString(PREFS_TILE_SOURCE,
-                TileSourceFactory.DEFAULT_TILE_SOURCE.name());
-        try {
-            final ITileSource tileSource = TileSourceFactory.getTileSource(tileSourceName);
-            mMapView.setTileSource(tileSource);
-        } catch (final IllegalArgumentException e) {
-            mMapView.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
-        }
+        //set the listener to listen for changes in the preferences
+//        prefs.registerOnSharedPreferenceChangeListener(this);
+//        final String tileSourceName = mPrefs.getString(PREFS_TILE_SOURCE,
+//                TileSourceFactory.DEFAULT_TILE_SOURCE.name());
+//        try {
+//            final ITileSource tileSource = TileSourceFactory.getTileSource(tileSourceName);
+//            mMapView.setTileSource(tileSource);
+//        } catch (final IllegalArgumentException e) {
+//            mMapView.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
+//        }
         if (mPrefs.getBoolean(PREFS_SHOW_LOCATION, false)) {
             this.mLocationOverlay.enableMyLocation();
         }
@@ -461,23 +517,30 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
         return mPin;
     }
 
-    public void drawRouteAndMarkers(MapView mapView) throws JSONException {
-
-        JsonFilesHandler jfh = new JsonFilesHandler(getActivity());
-        String name;
+    public void drawRoute(Integer id) throws JSONException {
         JSONObject fileObj, geo;
         JSONArray geoArr;
-        ArrayList<GeoPoint> waypoints;
-        Polyline p;
+        ArrayList<GeoPoint> waypoints = new ArrayList<>();
         GeoPoint newPoint;
-
+        routeOverlay = new Polyline(getActivity());
         // Drawing route, each stage on it's own overlay
-        for (int i = 1; i <= 32; i++) {
-            fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
-            name = fileObj.getString("name");
+        if (id == 0) {
+            for (int i = 1; i <= 32; i++) {
+                fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
+                geoArr = fileObj.getJSONArray("geo");
+
+                for (int h = 0; h < geoArr.length(); h++) {
+                    geo = geoArr.getJSONObject(h);
+                    Double lat = geo.getDouble("-lat");
+                    Double lng = geo.getDouble("-lon");
+                    newPoint = new GeoPoint(lat, lng);
+                    waypoints.add(newPoint);
+                }
+            }
+        } else {
+            fileObj = jfh.parseJSONObj("json/stage" + id + ".json");
             geoArr = fileObj.getJSONArray("geo");
 
-            waypoints = new ArrayList<>();
             for (int h = 0; h < geoArr.length(); h++) {
                 geo = geoArr.getJSONObject(h);
                 Double lat = geo.getDouble("-lat");
@@ -485,14 +548,15 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
                 newPoint = new GeoPoint(lat, lng);
                 waypoints.add(newPoint);
             }
-            p = new Polyline(getActivity());
-            p.setTitle(name);
-            p.setColor(Color.GREEN);
-            p.setWidth(8.0f);
-            p.setPoints(waypoints);
-            mapView.getOverlays().add(p);
         }
 
+        routeOverlay.setColor(Color.CYAN);
+        routeOverlay.setWidth(4.0f);
+        routeOverlay.setPoints(waypoints);
+        mMapView.getOverlays().add(routeOverlay);
+    }
+
+    public void drawMarkers() throws JSONException {
 
         // Parent overlay for albergues markers
         albMarkersOverlay = new FolderOverlay(getActivity());
@@ -527,7 +591,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
                 } else {
                     Double lat = Double.parseDouble(location[0]);
                     Double lng = Double.parseDouble(location[1]);
-                    albMarkersOverlay.add(drawAlbMarker(mapView, lat, lng, title, desc));
+                    albMarkersOverlay.add(drawAlbMarker(mMapView, lat, lng, title, desc));
                 }
             }
         }
@@ -542,7 +606,7 @@ public class OSMFragment extends Fragment implements OpenStreetMapConstants{
                 if (v.getString("Symbol").contains("Pin, Red")) {
                     String title = v.getString("Description");
                     String snippet = v.getString("Name");
-                    cityMarkersOverlay.add(drawCityMarker(mapView, lat, lng, title, snippet));
+                    cityMarkersOverlay.add(drawCityMarker(mMapView, lat, lng, title, snippet));
                 }
             }
         }

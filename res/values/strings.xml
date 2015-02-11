@@ -31,7 +31,7 @@
     <string name="pref_title_prevent_screenoff">Display always enabled</string>
     <string name="pref_summary_info_geo">Show your coordinates and altitude on map screen</string>
     <string name="pref_title_info_geo">Show coordinates</string>
-    <string name="pref_map_options_title">Map</string>
+    <string name="pref_offline_map_options_title">Offline Map</string>
     <string name="pref_title_rotation">Enable rotation</string>
     <string name="pref_summary_rotation">Map rotation by gestures</string>
     <string name="pref_title_locktouch">Lock accidental touching</string>
@@ -85,5 +85,17 @@
     <string name="action_download_map">Download selected</string>
     <string name="action_download_fragment">Download maps</string>
     <string name="action_delete_map">Delete selected</string>
+    <string name="pref_summary_zoom_controls">Enable zoom controls in offline mode</string>
+    <string name="pref_title_zoom_controls">Show zoom controls</string>
+    <string name="pref_summary_stop_follow">When gestures detected, otherwise only follow location button will works</string>
+    <string name="pref_title_stop_follow">Interrupt location follow</string>
+    <string name="pref_map_settings_title">Map Options</string>
+    <string name="pref_summary_offline_mode">Switch map to offline mode</string>
+    <string name="pref_title_offline_mode">Offline mode</string>
+    <string name="pref_key_download_title">Download maps</string>
+    <string name="action_hide_route">Route</string>
+    <string name="action_hide_markers">Markers</string>
+    <string name="distance_to_from_start">From start:</string>
+    <string name="distance_to_finish">To finish:</string>
 
 </resources>

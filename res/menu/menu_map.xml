@@ -1,8 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context="org.osmdroid.map.MapActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="200" app:showAsAction="never" />
-    <item android:id="@+id/action_stages" android:title="@string/action_stages"
-        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_hide_route" android:title="@string/action_hide_route"
+        android:orderInCategory="200" app:showAsAction="never" android:checkable="true"/>
+    <item android:id="@+id/action_hide_markers" android:title="@string/action_hide_markers"
+        android:orderInCategory="100" app:showAsAction="never" android:checkable="true"/>
 </menu>
