@@ -26,11 +26,15 @@ public interface AppConstants {
     public static final String PREFS_NAME = "com.tonyandr.camino.prefs";
     public static final String PREFS_SHOW_LOCATION = "showLocation";
 	public static final String PREFS_SHOW_COMPASS = "showCompass";
+	public static final String PREFS_STOP_FOLLOW_GESTURES = "key_stop_follow";
 
 
 	public static final String PREFS_STAGELIST_STAGEID = "stagelistStageId";
 	public static final String PREFS_STAGELIST_FROMTO = "stagelistFromTo";
 
+
+
+    public static final String KEY_USER_LEARNED_DRAWER = "user_learned_drawer";
 	// ===========================================================
 	// Methods
 	// ===========================================================

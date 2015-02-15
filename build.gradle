@@ -59,5 +59,6 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:21.0.3'
     compile 'com.google.android.gms:play-services:6.5.87'
     compile 'com.jjoe64:graphview:4.0.0'
+    compile 'com.loopj.android:android-async-http:1.4.5'
 
 }

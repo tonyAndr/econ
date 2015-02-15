@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import org.osmdroid.NavigationDrawerLayout;
 import org.osmdroid.R;
+import org.osmdroid.utils.DBControllerAdapter;
 
 
 /**
@@ -37,6 +38,7 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
     public TextView geoOutTextViewTime;
     SharedPreferences prefs;
 
+    DBControllerAdapter dbController;
     private Toolbar toolbar;
 
     // ===========================================================
@@ -69,7 +71,25 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
 			OSMFragment mapFragment = OSMFragment.newInstance();
 			fm.beginTransaction().add(R.id.map_container, mapFragment, MAP_FRAGMENT_TAG).commit();
 		}
+
+        dbController = new DBControllerAdapter(this);
+//        addAlbergue();
+
     }
+
+
+
+    private void addLocality () {
+
+    }
+
+    private void getAlbergues () {
+
+    }
+    private void getLocalities() {
+
+    }
+
     @Override
     protected Dialog onCreateDialog(final int id)
     {

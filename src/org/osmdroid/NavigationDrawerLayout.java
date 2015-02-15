@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.osmdroid.constants.AppConstants;
 import org.osmdroid.map.MapActivity;
 import org.osmdroid.settings.SettingsActivity;
 import org.osmdroid.stages.StageActivity;
@@ -31,7 +32,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapter.ClickListener {
+public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapter.ClickListener, AppConstants {
 
     private RecyclerView recyclerView;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -43,8 +44,8 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
     private boolean isDrawerOpened = false;
 
 
-    public static final String KEY_USER_LEARNED_DRAWER = "user_learned_drawer";
-    public static final String PREF_FILE_NAME = "draw_pref";
+
+//    public static final String PREF_FILE_NAME = "draw_pref";
 
     public NavigationDrawerLayout() {
         // Required empty public constructor
@@ -126,14 +127,14 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
     }
 
     public static void saveToPreferences(Context context, String preferenceName, String preferenceValue) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREF_FILE_NAME, context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(preferenceName, preferenceValue);
         editor.apply();
     }
 
     public static String readFromPreferences(Context context, String preferenceName, String defaultValue) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         return sharedPreferences.getString(preferenceName, defaultValue);
     }
 

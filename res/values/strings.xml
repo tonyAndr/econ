@@ -97,5 +97,6 @@
     <string name="action_hide_markers">Markers</string>
     <string name="distance_to_from_start">From start:</string>
     <string name="distance_to_finish">To finish:</string>
+    <string name="title_activity_splash">SplashActivity</string>
 
 </resources>
