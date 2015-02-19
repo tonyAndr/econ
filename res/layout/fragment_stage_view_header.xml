@@ -68,7 +68,8 @@ android:layout_below="@+id/tv_stagename"
         android:layout_alignTop="@+id/iv_globe"
         android:layout_toLeftOf="@+id/iv_globe"
         android:layout_marginRight="8dp"
-        android:layout_toStartOf="@+id/iv_globe" />
+        android:layout_toStartOf="@+id/iv_globe"
+        android:background="#00bfdd93" />
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -76,10 +77,11 @@ android:layout_below="@+id/tv_stagename"
         android:src="@drawable/globe_in_stage_view"
         android:layout_alignTop="@+id/tv_kmdone_text"
         android:layout_alignParentRight="true"
-        android:layout_marginRight="16dp"/>
+        android:layout_marginRight="16dp"
+        android:background="#00dd2725" />
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="16dp"
+        android:layout_height="8dp"
         android:layout_marginTop="8dp"
 android:layout_below="@+id/iv_globe"
         />

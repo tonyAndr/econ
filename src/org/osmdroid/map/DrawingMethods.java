@@ -38,13 +38,17 @@ public class DrawingMethods {
 
     ;
 
-    private Marker drawAlbMarker(Double lat, Double lng, String title, String desc, String snippet) {
+    private Marker drawAlbMarker(Double lat, Double lng, String title, String desc, String snippet, boolean highlighted) {
         GeoPoint mGeoP = new GeoPoint(lat, lng);
         // build a new marker pin
         Marker mPin = new Marker(mapView);
         mPin.setPosition(mGeoP);
         mPin.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_alb_marker));
+        if (highlighted) {
+            mPin.setIcon(context.getResources().getDrawable(R.drawable.to_albergue_stage_view));
+        } else {
+            mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_alb_marker));
+        }
         mPin.setTitle("Albergue "+title);
         mPin.setSubDescription(desc);
         mPin.setSnippet(snippet);
@@ -170,8 +174,9 @@ public class DrawingMethods {
         mapView.getOverlays().add(routeOverlay);
     }
 
-    public FolderOverlay drawAlbMarkers(int stage_id, FolderOverlay albMarkersOverlay) throws JSONException {
-
+    public FolderOverlay drawAlbMarkers(int stage_id, FolderOverlay albMarkersOverlay, Location finish) throws JSONException {
+        boolean highlighted = false;
+        JSONObject vh = null;
         JSONArray albJArr = dbController.getAlbergues(stage_id);
         for (int i = 0; i < albJArr.length(); i++) {
             JSONObject v = albJArr.getJSONObject(i);
@@ -182,13 +187,22 @@ public class DrawingMethods {
                 if (stage_id == v.getInt("stage")) {
                     Double lat = v.getDouble("lat");
                     Double lng = v.getDouble("lng");
-                    albMarkersOverlay.add(drawAlbMarker(lat, lng, title, desc, snippet));
+
+                    if (lat == finish.getLatitude() && lng == finish.getLongitude()) {
+                        highlighted = true;
+                        vh = v;
+                    } else {
+                        albMarkersOverlay.add(drawAlbMarker(lat, lng, title, desc, snippet, false));
+                    }
                 }
             } else {
                 Double lat = v.getDouble("lat");
                 Double lng = v.getDouble("lng");
-                albMarkersOverlay.add(drawAlbMarker(lat, lng, title, desc, snippet));
+                albMarkersOverlay.add(drawAlbMarker(lat, lng, title, desc, snippet, false));
             }
+        }
+        if (highlighted && vh != null) {
+            albMarkersOverlay.add(drawAlbMarker(vh.getDouble("lat"), vh.getDouble("lng"), vh.getString("title"), vh.getString("locality") + " " + vh.getString("address"), vh.getString("tel"), true));
         }
         return albMarkersOverlay;
     }

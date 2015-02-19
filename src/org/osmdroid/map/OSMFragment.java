@@ -89,6 +89,8 @@ public class OSMFragment extends Fragment implements AppConstants {
     private ImageButton mZoomIn;
     private ImageButton mZoomOut;
     private ResourceProxy mResourceProxy;
+
+
     // GMS
     public Location mCurrentLocation;
     public Location mFinishLocation;
@@ -102,6 +104,7 @@ public class OSMFragment extends Fragment implements AppConstants {
     private DrawingMethods drawingMethods;
     private Intent mIntentFromStage;
     private Bundle bundle;
+    private Location finish;
 
     static {
         areaLimitSpain = new BoundingBoxE6(43.78,
@@ -186,7 +189,7 @@ public class OSMFragment extends Fragment implements AppConstants {
             bundle = getArguments();
             if (bundle != null) {
                 Log.d("drawlogic", "We have bundle");
-                Location finish = new Location("");
+                finish = new Location("");
                 finish.setLatitude(bundle.getDouble("lat"));
                 finish.setLongitude(bundle.getDouble("lng"));
                 int show_stage = bundle.getInt("stage_id");
@@ -329,7 +332,7 @@ public class OSMFragment extends Fragment implements AppConstants {
         @Override
         protected Void doInBackground(Integer... params) {
             try {
-                drawingMethods.drawAlbMarkers(params[0], folderOverlay);
+                drawingMethods.drawAlbMarkers(params[0], folderOverlay, finish);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
