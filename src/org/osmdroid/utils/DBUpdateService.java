@@ -23,9 +23,12 @@ public class DBUpdateService extends IntentService {
         Log.d("dbservice", "start service");
         dbController = new DBControllerAdapter(this);
         eraseAlbergues();
+        eraseLocalities();
         try {
-            JSONArray array = new JSONArray(intent.getStringExtra("array"));
-            addAlbergues(array);
+            JSONArray albergues = new JSONArray(intent.getStringExtra("albergues"));
+            addAlbergues(albergues);
+            JSONArray localities = new JSONArray(intent.getStringExtra("localities"));
+            addLocalities(localities);
 
 
         } catch (JSONException e) {
@@ -62,21 +65,42 @@ public class DBUpdateService extends IntentService {
                     location = null;
                 }
                 if (location !=null) {
-                    id = dbController.insertAlbergue(obj.getString("albergue"), obj.getString("locality"), obj.getString("telephone"), obj.getString("beds"), obj.getInt("stage"), Double.parseDouble(location[0]), Double.parseDouble(location[1]), obj.getString("type"));
+                    id = dbController.insertAlbergue(obj.getString("albergue"), obj.getString("locality"),
+                            obj.getString("telephone"), obj.getString("beds"), obj.getInt("stage"),
+                            Double.parseDouble(location[0]), Double.parseDouble(location[1]),
+                            obj.getString("type"), obj.getString("address"));
                     count++;
                 } else {
                     Log.d("dbservice", "Null at " + obj.getInt("id"));
                 }
 
             }
-            Log.d("dbservice", "Inserted " + count);
+            Log.d("dbservice", "Inserted albergues" + count);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+    private void addLocalities (JSONArray array) {
+        JSONObject obj;
+        int count = 0;
+        try {
+            for (int i = 0; i < array.length(); i++) {
+                obj = array.getJSONObject(i);
+                    dbController.insertLocality(obj.getString("locality"), obj.getDouble("latitude"), obj.getDouble("longitude"));
+                    count++;
+            }
+            Log.d("dbservice", "Inserted localities" + count);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
     private void eraseAlbergues () {
         int count = dbController.eraseAlbergues();
-        Log.d("dbservice", "deleted " +count);
+        Log.d("dbservice", "deleted albergues" +count);
+    }
+    private void eraseLocalities () {
+        int count = dbController.eraseLocality();
+        Log.d("dbservice", "deleted localities" +count);
     }
 
 }

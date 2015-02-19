@@ -2,6 +2,7 @@
 package org.osmdroid.map;
 
 import android.annotation.TargetApi;
+import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,7 +14,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,12 +28,14 @@ import android.widget.Toast;
 
 import org.json.JSONException;
 import org.osmdroid.R;
+import org.osmdroid.ResourceProxy;
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.bonuspack.overlays.Polyline;
 import org.osmdroid.constants.AppConstants;
 import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
 import org.osmdroid.events.ZoomEvent;
+import org.osmdroid.stages.StageActivity;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
@@ -44,6 +46,8 @@ import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+
+//import android.support.v4.app.Fragment;
 
 public class OSMFragment extends Fragment implements AppConstants {
     // ===========================================================
@@ -84,7 +88,7 @@ public class OSMFragment extends Fragment implements AppConstants {
     public Polyline routeOverlay;
     private ImageButton mZoomIn;
     private ImageButton mZoomOut;
-
+    private ResourceProxy mResourceProxy;
     // GMS
     public Location mCurrentLocation;
     public Location mFinishLocation;
@@ -97,6 +101,7 @@ public class OSMFragment extends Fragment implements AppConstants {
     private GeoMethods geoMethods;
     private DrawingMethods drawingMethods;
     private Intent mIntentFromStage;
+    private Bundle bundle;
 
     static {
         areaLimitSpain = new BoundingBoxE6(43.78,
@@ -139,7 +144,11 @@ public class OSMFragment extends Fragment implements AppConstants {
         };
         IntentFilter intFilt = new IntentFilter(KEY_SERVICE_ACTION);
         getActivity().registerReceiver(br, intFilt);
-        return inflater.inflate(R.layout.fragment_osm_map, container, false);
+        mResourceProxy = new ResourceProxyImpl(inflater.getContext().getApplicationContext());
+        mMapView = new MapView(inflater.getContext(), 256, mResourceProxy);
+//        return inflater.inflate(R.layout.fragment_osm_map, container, false);
+
+        return  mMapView;
     }
 
 
@@ -153,7 +162,7 @@ public class OSMFragment extends Fragment implements AppConstants {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mMapView = (MapView) getActivity().findViewById(R.id.osm_mapview);
+//        mMapView = (MapView) getActivity().findViewById(R.id.osm_mapview);
         mSettings = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mZoomIn = (ImageButton) getActivity().findViewById(R.id.zoomInBtn);
         mZoomOut = (ImageButton) getActivity().findViewById(R.id.zoomOutBtn);
@@ -166,10 +175,7 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         setUpMapView();
         setMapViewPreferences();
-//        Log.d("drawlogic", ""+mIntentFromStage.getBooleanExtra("not_null", false));
-        new DrawCityMarkersTask().execute();
-
-
+        new OnWhichStageTask().execute();
         setHasOptionsMenu(true);
     }
 
@@ -177,34 +183,26 @@ public class OSMFragment extends Fragment implements AppConstants {
         Log.d("drawlogic", "Calculating logic...");
         // Where we are?
 //        int current_stage = 0; // 0 = not found
-
-            if (mIntentFromStage.getBooleanExtra("not_null", false)) {
-                Log.d("drawlogic", "We have intent");
+            bundle = getArguments();
+            if (bundle != null) {
+                Log.d("drawlogic", "We have bundle");
                 Location finish = new Location("");
-                finish.setLatitude(mIntentFromStage.getDoubleExtra("lat", 0));
-                finish.setLongitude(mIntentFromStage.getDoubleExtra("lng", 0));
-                int show_stage = mIntentFromStage.getIntExtra("stage_id", 1);
-                Toast.makeText(getActivity(), "Don't dorget about stage_id", Toast.LENGTH_SHORT).show();
+                finish.setLatitude(bundle.getDouble("lat"));
+                finish.setLongitude(bundle.getDouble("lng"));
+                int show_stage = bundle.getInt("stage_id");
+//                Toast.makeText(getActivity(), "Don't dorget about stage_id", Toast.LENGTH_SHORT).show();
                 if (mCurrentLocation != null) {
                     Log.d("drawlogic", "We have location");
-//                    current_stage = geoMethods.onWhichStage(mCurrentLocation);
                     if (current_stage == show_stage) {
                         Log.d("drawlogic", "We are on show stage!");
-//                        double distanceToFinish = drawingMethods.drawDistanceRoute(show_stage, mCurrentLocation, finish);
                         new CalculateDistanceTask().execute(show_stage);
-                        new DrawAlbMarkersTask().execute(show_stage);
-//                        drawingMethods.drawAlbMarkers(albMarkersOverlay);
                         mMapView.getController().setCenter(new GeoPoint(finish.getLatitude(), finish.getLongitude()));
                         mMapView.getController().setZoom(16);
                         albMarkersOverlay.setEnabled(true);
                         mMapView.invalidate();
-//                        Toast.makeText(getActivity(), distanceToFinish+ " km left", Toast.LENGTH_LONG).show();
                     } else {
                         Log.d("drawlogic", "We are not on show stage!");
-//                        drawingMethods.drawStageRoute(show_stage);
                         new DrawStageTask().execute(show_stage);
-                        new DrawAlbMarkersTask().execute(show_stage);
-//                        drawingMethods.drawAlbMarkers(albMarkersOverlay);
                         mMapView.getController().setCenter(new GeoPoint(finish.getLatitude(), finish.getLongitude())); // Center to albergue or start of stage if globus
                         mMapView.getController().setZoom(16);
                         albMarkersOverlay.setEnabled(true);
@@ -212,30 +210,20 @@ public class OSMFragment extends Fragment implements AppConstants {
                     }
                 } else {
                     Log.d("drawlogic", "No location, draw show stage, center to stagestart or albergue");
-//                    drawingMethods.drawStageRoute(show_stage);
-//                    drawingMethods.drawAlbMarkers(albMarkersOverlay);
                     new DrawStageTask().execute(show_stage);
-                    new DrawAlbMarkersTask().execute(show_stage);
                     mMapView.getController().setZoom(16);
                     mMapView.getController().setCenter(new GeoPoint(finish.getLatitude(), finish.getLongitude()));
                 }
 
             } else {
                 if (mCurrentLocation != null) {
-                    Log.d("drawlogic", "We have location and no intent recieved");
-//                    current_stage = geoMethods.onWhichStage(mCurrentLocation);
-//                    drawingMethods.drawStageRoute(current_stage);
-//                    drawingMethods.drawAlbMarkers(albMarkersOverlay);
+                    Log.d("drawlogic", "We have location and no bundle recieved");
                     new DrawStageTask().execute(current_stage);
-                    new DrawAlbMarkersTask().execute(current_stage);
                     mMapView.getController().setCenter(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
                     mMapView.getController().setZoom(14);
                 } else {
                     Log.d("drawlogic", "No location, no intent. Draw all.");
-//                    drawingMethods.drawStageRoute(0);
-//                    drawingMethods.drawAlbMarkers(albMarkersOverlay);
                     new DrawStageTask().execute(current_stage);
-                    new DrawAlbMarkersTask().execute(current_stage);
                     GeoPoint startPoint = new GeoPoint(42.4167413, -2.7294623);
                     mMapView.getController().setCenter(startPoint);
                     mMapView.getController().setZoom(10);
@@ -276,6 +264,7 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         }
         private double distanceToFinish;
+        private int stage_id;
 
         @Override
         protected Void doInBackground(Integer... params) {
@@ -284,11 +273,14 @@ public class OSMFragment extends Fragment implements AppConstants {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            stage_id = params[0];
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            new DrawAlbMarkersTask().execute(stage_id);
+            new DrawCityMarkersTask().execute();
             mMapView.invalidate();
             Toast.makeText(getActivity(), distanceToFinish+ " km left", Toast.LENGTH_LONG).show();
         }
@@ -297,6 +289,7 @@ public class OSMFragment extends Fragment implements AppConstants {
         public DrawStageTask() {
 
         }
+        private int stage_id;
 
         @Override
         protected void onPreExecute() {
@@ -311,11 +304,14 @@ public class OSMFragment extends Fragment implements AppConstants {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            stage_id = params[0];
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            new DrawAlbMarkersTask().execute(stage_id);
+            new DrawCityMarkersTask().execute();
             mMapView.invalidate();
         }
     }
@@ -344,7 +340,12 @@ public class OSMFragment extends Fragment implements AppConstants {
         protected void onPostExecute(Void aVoid) {
             albMarkersOverlay = folderOverlay;
             mMapView.getOverlays().add(albMarkersOverlay);
-            albMarkersOverlay.setEnabled(false);
+            if (mMapView.getZoomLevel() <16) {
+                albMarkersOverlay.setEnabled(false);
+            } else {
+                albMarkersOverlay.setEnabled(true);
+            }
+
             mMapView.invalidate();
         }
     }
@@ -378,7 +379,8 @@ public class OSMFragment extends Fragment implements AppConstants {
     }
 
     private void setUpMapView() {
-        mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
+
+        mMapView.setTileSource(TileSourceFactory.MAPNIK);
         mMapView.setUseDataConnection(false); //optional, but a good way to prevent loading from the network and test your zip loading.
         mMapView.getController().setZoom(10);
         mMapView.setMinZoomLevel(10);
@@ -510,7 +512,7 @@ public class OSMFragment extends Fragment implements AppConstants {
         mLocationOverlay.enableMyLocation();
         mCompassOverlay.enableCompass();
 
-        albMarkersOverlay.setEnabled(false);
+//        albMarkersOverlay.setEnabled(false);
 
         MapTouchOverlay mapTouchOverlay = new MapTouchOverlay(getActivity());
         mMapView.getOverlays().add(mapTouchOverlay);
@@ -572,6 +574,12 @@ public class OSMFragment extends Fragment implements AppConstants {
         this.mCompassOverlay.disableCompass();
 //        prefs.unregisterOnSharedPreferenceChangeListener(this);
         getActivity().stopService(mServiceIntent);
+        if(getActivity() instanceof StageActivity) {
+            getActivity().findViewById(R.id.zoomInBtn).setVisibility(View.GONE);
+            getActivity().findViewById(R.id.zoomOutBtn).setVisibility(View.GONE);
+            getActivity().findViewById(R.id.getMyLocBtn).setVisibility(View.GONE);
+        }
+
     }
 
     @Override
@@ -591,14 +599,15 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         getActivity().startService(mServiceIntent);
 
-        mIntentFromStage = getActivity().getIntent();
-        new OnWhichStageTask().execute();
-//        try {
-//            drawingMethods.drawCityMarkers(cityMarkersOverlay);
-//            drawLogic();
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
+//        mIntentFromStage = getActivity().getIntent();
+        bundle = getArguments();
+        if (bundle != null && getActivity() instanceof StageActivity) {
+            getActivity().findViewById(R.id.zoomInBtn).setVisibility(View.VISIBLE);
+            getActivity().findViewById(R.id.zoomOutBtn).setVisibility(View.VISIBLE);
+            getActivity().findViewById(R.id.getMyLocBtn).setVisibility(View.VISIBLE);
+        }
+
+
     }
 
     @Override
@@ -633,6 +642,9 @@ public class OSMFragment extends Fragment implements AppConstants {
         switch (item.getItemId()) {
             case MENU_ABOUT:
                 getActivity().showDialog(DIALOG_ABOUT_ID);
+                return true;
+            case android.R.id.home:
+                getActivity().onBackPressed();
                 return true;
         }
         return super.onOptionsItemSelected(item);

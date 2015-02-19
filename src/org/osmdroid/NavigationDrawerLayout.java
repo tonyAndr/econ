@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -32,7 +33,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapter.ClickListener, AppConstants {
+public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapter.ClickListener, AppConstants{
 
     private RecyclerView recyclerView;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -42,6 +43,7 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
     private View containerView;
     private DrawRecycleAdapter adapter;
     private boolean isDrawerOpened = false;
+    private FragmentManager fragmentManager;
 
 
 
@@ -58,6 +60,8 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
         if (savedInstanceState != null) {
             mFromSavedInstanceState = true;
         }
+//        fragmentManager = getFragmentManager();
+//        fragmentManager.addOnBackStackChangedListener(this);
     }
 
     @Override
@@ -76,7 +80,7 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
         //load only static data inside a drawer
         List<DrawRecycleInformation> data = new ArrayList<>();
         int icon = R.drawable.list_circle;
-        String[] titles = {"Map", "Stages", "Settings", "Feedback", "About"};
+        String[] titles = {"Map", "Stages", "Settings", "Feedback", "About", "Nido de Cigüeña", "Nájera", "Nido de Cigüeña", "Nájera", "Nido de Cigüeña", "Nájera", "Nido de Cigüeña", "Nájera"};
         for (int i = 0; i < titles.length; i++) {
             DrawRecycleInformation current = new DrawRecycleInformation();
             current.iconId = icon;
@@ -99,13 +103,13 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
                     saveToPreferences(getActivity(), KEY_USER_LEARNED_DRAWER, mUserLearnedDrawer + "");
                 }
                 getActivity().invalidateOptionsMenu();
+
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
                 getActivity().invalidateOptionsMenu();
-
             }
 
             @Override
@@ -117,6 +121,7 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
         if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
             mDrawerLayout.openDrawer(containerView);
         }
+
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerLayout.post(new Runnable() {
             @Override
@@ -162,4 +167,22 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
                 break;
         }
     }
+
+    public void setActionBarArrowDependingOnFragmentsBackStack(int backStackCount) {
+        if (backStackCount != 0) {
+            mDrawerToggle.setDrawerIndicatorEnabled(false);
+            mDrawerToggle.setToolbarNavigationClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+//                    Toast.makeText(getActivity(), "CLICK", Toast.LENGTH_SHORT).show();
+                    getActivity().onBackPressed();
+                }
+            });
+        } else {
+            mDrawerToggle.setDrawerIndicatorEnabled(true);
+        }
+
+//        Toast.makeText(getActivity(), "back " + backStackCount, Toast.LENGTH_SHORT).show();
+    }
+
 }

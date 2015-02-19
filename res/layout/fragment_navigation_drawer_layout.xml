@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="140dp"
             android:layout_marginTop="@dimen/drawer_margin_top"
-            android:src="@drawable/ic_nav_drawer_landscape" />
+            android:src="@drawable/navdrawer" />
     </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
