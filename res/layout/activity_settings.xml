@@ -22,7 +22,7 @@
     </RelativeLayout>
     <fragment
         android:id="@+id/fragment_nav_drawer"
-        android:name="org.osmdroid.NavigationDrawerLayout"
+        android:name="com.tonyandr.caminoguide.NavigationDrawerLayout"
         android:layout_width="@dimen/nav_drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"

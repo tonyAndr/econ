@@ -3,7 +3,7 @@
     <PreferenceCategory
         android:title="@string/pref_main_options_title"
         android:key="pref_key_main_settings">
-        <SwitchPreference
+        <CheckBoxPreference
             android:key="pref_key_prevent_screenoff"
             android:summary="@string/pref_summary_prevent_screenoff"
             android:title="@string/pref_title_prevent_screenoff"
@@ -12,7 +12,7 @@
     <PreferenceCategory
         android:key="pref_key_map_settings"
         android:title="@string/pref_map_settings_title">
-        <SwitchPreference android:key="pref_key_offline_mode"
+        <CheckBoxPreference android:key="pref_key_offline_mode"
             android:summary="@string/pref_summary_offline_mode"
             android:title="@string/pref_title_offline_mode"
             android:defaultValue="true"/>
@@ -23,7 +23,7 @@
     <PreferenceCategory
         android:title="@string/pref_offline_map_options_title"
         android:key="pref_key_map_settings">
-        <SwitchPreference
+        <CheckBoxPreference
             android:key="pref_key_info_geo"
             android:summary="@string/pref_summary_info_geo"
             android:title="@string/pref_title_info_geo"
@@ -38,11 +38,11 @@
             <!--android:summary="@string/pref_summary_locktouch"-->
             <!--android:title="@string/pref_title_locktouch"-->
             <!--android:defaultValue="false"/>-->
-        <SwitchPreference android:key="pref_key_zoom_controls"
+        <CheckBoxPreference android:key="pref_key_zoom_controls"
             android:summary="@string/pref_summary_zoom_controls"
             android:title="@string/pref_title_zoom_controls"
             android:defaultValue="true" />
-        <SwitchPreference android:key="pref_key_stop_follow"
+        <CheckBoxPreference android:key="pref_key_stop_follow"
             android:summary="@string/pref_summary_stop_follow"
             android:title="@string/pref_title_stop_follow"
             android:defaultValue="true"/>

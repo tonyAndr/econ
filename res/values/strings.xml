@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Easy Camino Offline Navigator</string>
+    <string name="app_name">Camino Guide Offline</string>
     <string name="unknown">Unknown</string>
     <string name="map_mode">Map mode</string>
     <string name="my_location">My location</string>
@@ -45,17 +45,17 @@
 
     <string-array name="stage_names">
         <item>Saint Jean Pied de Port - Roncesvalles</item>
-        <item>Roncesvalles - Larrasoña</item>
-        <item>Larrasoña - Cizur Menor</item>
-        <item>Cizur Menor - Obanos</item>
-        <item>Obanos - Estella</item>
-        <item>Estella - Torres del Rio</item>
+        <item>Roncesvalles - Zubiri</item>
+        <item>Zubiri - Pamplona/Iruña</item>
+        <item>Pamplona/Iruña - Puente la Reina/Gares</item>
+        <item>Puente la Reina/Gares - Estella/Lizarra</item>
+        <item>Estella/Lizarra - Torres del Rio</item>
         <item>Torres del Río - Logroño</item>
         <item>Logroño - Nájera</item>
         <item>Nájera - Santo Domingo de la Calzada</item>
         <item>Santo Domingo de la Calzada - Belorado</item>
-        <item>Belorado - San Juan de Ortega</item>
-        <item>San Juan de Ortega - Burgos</item>
+        <item>Belorado - Agés</item>
+        <item>Agés - Burgos</item>
         <item>Burgos - Hontanas</item>
         <item>Hontanas - Boadilla del Camino</item>
         <item>Boadilla del Camino - Carrión de los Condes</item>
@@ -68,8 +68,8 @@
         <item>Astorga - Foncebadón</item>
         <item>Foncebadón - Ponferrada</item>
         <item>Ponferrada - Villafranca del Bierzo</item>
-        <item>Villafranca del Bierzo - La Faba</item>
-        <item>La Faba - Triacastela</item>
+        <item>Villafranca del Bierzo - O Cebreiro</item>
+        <item>O Cebreiro - Triacastela</item>
         <item>Triacastela - Sarria</item>
         <item>Sarria - Portomarín</item>
         <item>Portomarín - Palas de Rei</item>
@@ -98,5 +98,8 @@
     <string name="distance_to_from_start">From start:</string>
     <string name="distance_to_finish">To finish:</string>
     <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_feedback">FeedbackActivity</string>
+    <string name="notify_suggestion_text">Please, notify us about any mistakes/errors or whatever in our app. You can include you current position using checkbox below.</string>
+    <string name="drawing_loading_route_text">Drawing route...</string>
 
 </resources>

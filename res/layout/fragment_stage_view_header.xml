@@ -15,28 +15,16 @@
         android:layout_marginRight="16dp"
         android:layout_marginTop="16dp"
         android:text="Carrión de los Condes - Terradillos de los Templarios"
+        android:visibility="gone"
         android:textSize="20sp" />
-
-    <!--<TextView-->
-        <!--android:id="@+id/tv_stagelength"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginRight="16dp"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_marginTop="16dp"-->
-        <!--android:text="29.9 km"-->
-        <!--android:textStyle="bold"-->
-        <!--android:layout_alignBottom="@+id/tv_stagename"-->
-        <!--android:textSize="16sp" />-->
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-android:layout_below="@+id/tv_stagename"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="16dp" />
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:id="@+id/tv_kmdone_text"
@@ -58,7 +46,7 @@ android:layout_below="@+id/tv_stagename"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="8dp"
         android:textSize="16sp"
-        android:text="15.6/26.5 KM (67%)" />
+        android:text="" />
 
     <ImageButton
         android:layout_width="wrap_content"

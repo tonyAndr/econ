@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#EFEFEF"
-    tools:context="org.osmdroid.NavigationDrawerLayout">
+    tools:context="com.tonyandr.caminoguide.NavigationDrawerLayout">
 
     <LinearLayout
         android:id="@+id/containerDrawerImage"

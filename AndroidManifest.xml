@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.osmdroid" >
+    package="com.tonyandr.caminoguide" >
 
     <uses-sdk
         android:minSdkVersion="16"
@@ -21,6 +21,10 @@
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
 
+    <permission
+        android:name="com.tonyandr.caminoguide.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+
     <uses-feature
         android:name="android.hardware.location.network"
         android:required="false" />
@@ -37,23 +41,25 @@
         android:glEsVersion="0x00020000"
         android:required="true" />
 
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
+    <android:uses-permission android:name="android.permission.READ_PHONE_STATE" /> <!-- <uses-permission android:name="android.permission.READ_PHONE_STATE" /> -->
     <application
         android:configChanges="orientation|screenSize|keyboardHidden"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ecn_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
         <!-- all applications based on this code should get their own Bing key -->
 
         <uses-library
             android:name="com.google.android.maps"
             android:required="false" />
+
         <activity
             android:name=".SplashActivity"
-            android:label="@string/title_activity_splash" >
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -63,8 +69,8 @@
         <activity
             android:name=".map.MapActivity"
             android:icon="@drawable/ecn_icon"
-            android:launchMode="singleTop"
-            android:label="Camino Albergues Navigator" >
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
         </activity>
         <activity
             android:name=".settings.SettingsActivity"
@@ -93,7 +99,15 @@
         <service android:name=".utils.DBUpdateService" >
         </service>
 
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyDWm6rGejKkVypqdiru5gQWJ0Auu0M-I1s" />
 
+        <activity
+            android:name=".feedback.FeedbackActivity"
+            android:launchMode="singleTop"
+            android:label="@string/title_activity_feedback" >
+        </activity>
     </application>
 
 </manifest>
