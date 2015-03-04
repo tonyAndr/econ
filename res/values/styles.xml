@@ -12,7 +12,13 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryColorDark</item>
-        <item name="colorAccent">@color/primaryColorDark</item>
+        <item name="colorAccent">@color/accentColor</item>
 
     </style>
+
+        <style name="CustomProgressBarHorizontal" parent="android:Widget.ProgressBar.Horizontal">
+            <item name="android:progressDrawable">@drawable/custom_progress_bar_horizontal</item>
+            <item name="android:minHeight">20dip</item>
+            <item name="android:maxHeight">20dip</item>
+        </style>
 </resources>

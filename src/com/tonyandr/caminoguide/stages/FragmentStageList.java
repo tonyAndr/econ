@@ -6,18 +6,25 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.tonyandr.caminoguide.R;
 import com.tonyandr.caminoguide.constants.AppConstants;
+import com.tonyandr.caminoguide.utils.GeoMethods;
 import com.tonyandr.caminoguide.utils.JsonFilesHandler;
+
+import org.json.JSONException;
 
 import java.util.ArrayList;
 
@@ -31,6 +38,8 @@ public class FragmentStageList extends Fragment implements AppConstants  {
 //    Communicater communicater;
     private JsonFilesHandler jfh;
     private ListView listView;
+    private Parcelable mListState;
+    private StagesAdapter adapter;
 //    private StagesAdapter adapter;
     public FragmentStageList() {
         // Required empty public constructor
@@ -51,7 +60,15 @@ public class FragmentStageList extends Fragment implements AppConstants  {
     @Override
     public void onResume() {
         super.onResume();
+        getActivity().setTitle(R.string.stage_activity_list_fragment_title);
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -61,13 +78,19 @@ public class FragmentStageList extends Fragment implements AppConstants  {
         // Construct the data source
         ArrayList<StageListItem> arrayOfStages = new ArrayList<StageListItem>();
         // Create the adapter to convert the array to views
-        StagesAdapter adapter = new StagesAdapter(getActivity(), arrayOfStages);
+        adapter = new StagesAdapter(getActivity(), arrayOfStages);
         // Attach the adapter to a ListView
         listView = (ListView) getActivity().findViewById(R.id.stageslistview);
         listView.setAdapter(adapter);
 
-        MyTask myTask = new MyTask();
-        myTask.execute();
+        fillListView();
+        if (savedInstanceState != null) {
+//            Toast.makeText(getActivity(), "restored", Toast.LENGTH_SHORT).show();
+            listView.setSelectionFromTop(savedInstanceState.getInt("listIndex"), savedInstanceState.getInt("listTop"));
+        }
+
+        CurrentStage currentStage = new CurrentStage();
+        currentStage.execute();
         fragmentManager = getFragmentManager();
         fragmentView = new FragmentStageView();
 //        this.setCommunicater(communicater);
@@ -99,7 +122,63 @@ public class FragmentStageList extends Fragment implements AppConstants  {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        int index = listView.getFirstVisiblePosition();
+        View v = listView.getChildAt(0);
+        int top = (v == null) ? 0 : (v.getTop() - listView.getPaddingTop());
+
+        outState.putInt("listIndex", index);
+        outState.putInt("listTop", top);
     }
+
+    private void markCurrentStage(int stage) {
+        View v = listView.getChildAt(stage-1);
+        v.setBackgroundColor(Color.rgb(244,68,68));
+        ((TextView)((ViewGroup)v).getChildAt(1)).setTextColor(Color.WHITE);
+        ((ImageView)((ViewGroup)v).getChildAt(2)).setImageResource(R.drawable.list_triangle_white);
+    }
+
+    class CurrentStage extends AsyncTask<Void, Void, Void> {
+        private CurrentStage() {
+
+        }
+        private GeoMethods geoMethods;
+        private int stage;
+
+        @Override
+        protected void onPreExecute() {
+            geoMethods = new GeoMethods(getActivity());
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Location gps = new Location("");
+            if (mPrefs != null) {
+                gps.setLatitude(mPrefs.getFloat("lat", 0));
+                gps.setLongitude(mPrefs.getFloat("lng", 0));
+            } else {
+                gps.setLatitude(0);
+                gps.setLongitude(0);
+            }
+            try {
+                stage = geoMethods.onWhichStageSimple(gps);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+//            markCurrentStage(stage);
+            if (stage != 0) {
+                adapter.getItem(stage-1).current = true;
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+
 
 //    public void setCommunicater(Communicater communicater) {
 //        this.communicater = communicater;
@@ -110,40 +189,52 @@ public class FragmentStageList extends Fragment implements AppConstants  {
 //    }
 
 
-    class MyTask extends AsyncTask<Void, StageListItem, Void> {
-        public MyTask() {
+//    class MyTask extends AsyncTask<Void, StageListItem, Void> {
+//        public MyTask() {
+//
+//        }
+//        private StagesAdapter adapter;
+//        private String[] stageNames = getResources().getStringArray(R.array.stage_names);
+//        @Override
+//        protected void onPreExecute() {
+//             adapter = (StagesAdapter) listView.getAdapter();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void... params) {
+//            StageListItem newStage;
+//            int i=1;
+//            for (String item : stageNames) {
+//
+//                newStage = new StageListItem(i, item);
+//                publishProgress(newStage);
+//                i++;
+//            }
+//
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onProgressUpdate(StageListItem... values) {
+//                adapter.add(values[0]);
+//
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//        }
+//    }
 
-        }
-        private StagesAdapter adapter;
-        private String[] stageNames = getResources().getStringArray(R.array.stage_names);
-        @Override
-        protected void onPreExecute() {
-             adapter = (StagesAdapter) listView.getAdapter();
-        }
+    private void fillListView() {
+        String[] stageNames = getResources().getStringArray(R.array.stage_names);
+        adapter = (StagesAdapter) listView.getAdapter();
+        int i=1;
+        for (String item : stageNames) {
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            StageListItem newStage;
-            int i=1;
-            for (String item : stageNames) {
+            adapter.add(new StageListItem(i, item, false));
 
-                newStage = new StageListItem(i, item);
-                publishProgress(newStage);
-                i++;
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(StageListItem... values) {
-                adapter.add(values[0]);
-
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+            i++;
         }
     }
 }

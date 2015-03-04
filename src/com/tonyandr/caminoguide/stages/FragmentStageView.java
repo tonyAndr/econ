@@ -68,6 +68,7 @@ public class FragmentStageView extends Fragment implements AppConstants {
     private StageViewAlberguesAdapter mAlberguesAdapter;
     private double finish_latitude;
     private double finish_longitude;
+    private Boolean near = false;
 
     private TaskLoadData taskLoadData;
     private FillListViewTask fillListViewTask;
@@ -174,6 +175,8 @@ public class FragmentStageView extends Fragment implements AppConstants {
                 bundle.putDouble("lat", finish_latitude);
                 bundle.putDouble("lng", finish_longitude);
                 bundle.putBoolean("globe", true);
+                bundle.putBoolean("near", near);
+
 
                 if (settings.getBoolean("pref_key_offline_mode", true)) {
                     OSMFragment osmFragment = new OSMFragment();
@@ -342,11 +345,14 @@ public class FragmentStageView extends Fragment implements AppConstants {
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putFloat(KEY_KM_DONE, (float) mStageKmDone);
         editor.commit();
-        if (taskLoadData != null)
-            taskLoadData.cancel(true);
+        if (taskLoadData != null) {
+            if (taskLoadData.getStatus() != AsyncTask.Status.FINISHED)
+                taskLoadData.cancel(true);
+        }
 
         if (fillListViewTask != null)
-            fillListViewTask.cancel(true);
+            if (fillListViewTask.getStatus() != AsyncTask.Status.FINISHED)
+                fillListViewTask.cancel(true);
 
     }
 
@@ -394,7 +400,6 @@ public class FragmentStageView extends Fragment implements AppConstants {
         private ArrayList<String> xVals;
         private ArrayList<Entry> yVals;
         private String stageName;
-        private Boolean near = false;
         private int highlightId;
 
         public JSONArray jsonArr;

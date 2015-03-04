@@ -101,5 +101,8 @@
     <string name="title_activity_feedback">FeedbackActivity</string>
     <string name="notify_suggestion_text">Please, notify us about any mistakes/errors or whatever in our app. You can include you current position using checkbox below.</string>
     <string name="drawing_loading_route_text">Drawing route...</string>
+    <string name="stage_activity_list_fragment_title">Stages</string>
+    <string name="progress_drawing_route">Drawing route...</string>
+    <string name="progress_drawing_markers">Drawing markers...</string>
 
 </resources>

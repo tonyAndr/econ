@@ -1,6 +1,9 @@
 // Created by plusminus on 23:11:31 - 22.09.2008
 package com.tonyandr.caminoguide.constants;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+
 import org.osmdroid.util.BoundingBoxE6;
 
 /**
@@ -34,8 +37,8 @@ public interface AppConstants {
 	public static final String PREFS_STAGELIST_STAGEID = "stagelistStageId";
 	public static final String PREFS_STAGELIST_FROMTO = "stagelistFromTo";
 
-    public static final BoundingBoxE6 areaLimitSpain = new BoundingBoxE6(43.78,
-            -0.54, 41.0, -9.338);
+    public static final BoundingBoxE6 areaLimitSpain = new BoundingBoxE6(43.78, -0.54, 41.0, -9.338);
+    public static final LatLngBounds areaLimitSpainGMap = new LatLngBounds(new LatLng(41.0, -9.338),new LatLng(43.78, -0.54));
 
 
 
@@ -54,12 +57,15 @@ public interface AppConstants {
     static final String KEY_SERVICE_ACTION = "GeoService";
     static final String KEY_FOLLOW_USER = "mFollowUserLocation";
     static final String KEY_FIRST_CAMERA_MOVE = "fisrtCameraMove";
-    static final int TRACK_ZOOM_LEVEL = 12;
+    static final int TRACK_ZOOM_LEVEL = 16;
     static final int FIRST_SHOW_ZOOM_LEVEL = 12;
-    static final int SHOW_MARKERS_ZOOM_LEVEL = 12;
+    static final int SHOW_MARKERS_ZOOM_LEVEL = 14;
     static final int SHOW_STAGE_ZOOM_LEVEL = 12;
     static final int MIN_ZOOM_LEVEL = 10;
-    static final int MAX_ZOOM_LEVEL = 12;
+    static final int MAX_ZOOM_LEVEL = 18;
+
+
+    final static String ACTION_QUEUE_RECEIVER = "action_queue_reciever";
 	// ===========================================================
 	// Methods
 	// ===========================================================

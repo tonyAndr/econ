@@ -3,6 +3,7 @@ package com.tonyandr.caminoguide.stages;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.tonyandr.caminoguide.NavigationDrawerLayout;
 import com.tonyandr.caminoguide.R;
+import com.tonyandr.caminoguide.map.GeoService;
 
 
 public class StageActivity extends ActionBarActivity implements FragmentManager.OnBackStackChangedListener {
@@ -78,6 +80,24 @@ public class StageActivity extends ActionBarActivity implements FragmentManager.
 //        return super.onOptionsItemSelected(item);
 //    }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        onBackStackChanged();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopService(new Intent(this, GeoService.class));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, GeoService.class));
+    }
 
     @Override
     public void onBackPressed() {

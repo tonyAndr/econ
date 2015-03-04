@@ -9,11 +9,13 @@ import org.json.JSONObject;
 public class StageListItem {
     public Integer number;
     public String fromTo;
+    public boolean current = false;
 
 
-    public StageListItem(Integer number, String fromTo) {
+    public StageListItem(Integer number, String fromTo, boolean current) {
         this.number = number;
         this.fromTo = fromTo;
+        this.current = current;
 
     }
 
@@ -25,6 +27,7 @@ public class StageListItem {
             e.printStackTrace();
         }
     }
+
 
     // Factory method to convert an array of JSON objects into a list of objects
     // User.fromJson(jsonArray);

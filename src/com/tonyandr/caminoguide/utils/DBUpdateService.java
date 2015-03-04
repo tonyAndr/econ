@@ -12,7 +12,8 @@ import org.json.JSONObject;
  * Created by Tony on 14-Feb-15.
  */
 public class DBUpdateService extends IntentService {
-    DBControllerAdapter dbController;
+    private DBControllerAdapter dbController;
+    private int albArrayLength;
 
     public DBUpdateService() {
         super("DBUpdateService");
@@ -27,6 +28,7 @@ public class DBUpdateService extends IntentService {
         try {
             if (intent.getStringExtra("albergues") != null) {
                 JSONArray albergues = new JSONArray(intent.getStringExtra("albergues"));
+                albArrayLength = albergues.length();
                 addAlbergues(albergues);
             }
             if (intent.getStringExtra("localities") != null) {
@@ -42,15 +44,17 @@ public class DBUpdateService extends IntentService {
             e.printStackTrace();
         }
 
-        sendThisBroadcast();
+        sendThisBroadcast(100, albArrayLength, true);
         Log.d("dbservice", "stop service");
 
     }
 
-    private void sendThisBroadcast() {
+    private void sendThisBroadcast(int progress, int count, boolean finished) {
         Intent intent = new Intent();
         intent.setAction("DBUpdateService");
-        intent.putExtra("broadcast", true);
+        intent.putExtra("finished", finished);
+        intent.putExtra("progress", progress);
+        intent.putExtra("count", count);
         sendBroadcast(intent);
     }
 
@@ -59,8 +63,10 @@ public class DBUpdateService extends IntentService {
         long id;
         String[] location;
         int count = 0;
+        int length = array.length();
+        int progress = 0;
         try {
-            for (int i = 0; i < array.length(); i++) {
+            for (int i = 0; i < length; i++) {
                 obj = array.getJSONObject(i);
                 location = new String[2];
 
@@ -77,6 +83,9 @@ public class DBUpdateService extends IntentService {
                             Double.parseDouble(location[0]), Double.parseDouble(location[1]),
                             obj.getString("type"), obj.getString("address"));
                     count++;
+                    progress = Math.round(count*100/length);
+                    Log.d("dbservice", "Progress " + progress);
+                    sendThisBroadcast(progress, count, false);
                 } else {
                     Log.d("dbservice", "Null at " + obj.getInt("id"));
                 }

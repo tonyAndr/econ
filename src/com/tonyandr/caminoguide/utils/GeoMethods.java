@@ -49,8 +49,9 @@ public class GeoMethods implements AppConstants {
                 int localPointId = 0;
                 for (int id:stages) {
                     fileObj = jfh.parseJSONObj("json/stage" + id + ".json");
-                    double thisMin = getMinFromArray(fileObj, location).localMin;
-                    int thisPointId = getMinFromArray(fileObj, location).pointId;
+                    OnStageLocationData onStageLocationData = getMinFromArray(fileObj, location);
+                    double thisMin = onStageLocationData.localMin;
+                    int thisPointId = onStageLocationData.pointId;
                     if(localMin > thisMin) {
                         localMin = thisMin;
                         stage_id = id;
@@ -61,6 +62,27 @@ public class GeoMethods implements AppConstants {
             }
         }
         return null;
+    }
+
+    public Integer onWhichStageSimple(Location location) throws JSONException {
+        if (location != null) {
+            JSONObject fileObj, max, min;
+
+            jfh = new JsonFilesHandler(context);
+            int stage_id = 0;
+            JSONArray jsonArray = jfh.parseJSONArr("json/bounds.json");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                fileObj = jsonArray.getJSONObject(i);
+                max = fileObj.getJSONObject("maxlatlng");
+                min = fileObj.getJSONObject("minlatlng");
+                LatLngBounds box = new LatLngBounds((new LatLng(min.getDouble("lat"), min.getDouble("lng"))),(new LatLng(max.getDouble("lat"), max.getDouble("lng"))));
+                if (box.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
+                    Log.w(DEBUGTAG, "Close to stage #"+fileObj.getInt("stageid"));
+                    return fileObj.getInt("stageid");
+                }
+            }
+        }
+        return 0;
     }
 
     private OnStageLocationData getMinFromArray (JSONObject jsonObject, Location location) throws JSONException {

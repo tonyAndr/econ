@@ -110,29 +110,9 @@
             android:background="#ffffffff"
             android:text="TEST LON"
             android:textSize="10sp" />
-        <LinearLayout
+        <include
             android:id="@+id/progress_drawing_id"
-            android:layout_width="wrap_content"
-            android:orientation="horizontal"
-            android:layout_height="32dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:background="#88555555"
-            android:visibility="gone"
-            >
-            <ProgressBar
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:indeterminate="true" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/drawing_loading_route_text"
-                android:gravity="center"
-                android:textColor="#FFFFFFFF"
-                android:layout_margin="8dp"
-                />
-        </LinearLayout>
+            layout="@layout/drawing_progress" />
     </RelativeLayout>
 
 

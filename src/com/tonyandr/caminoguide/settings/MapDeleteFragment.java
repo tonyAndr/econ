@@ -20,12 +20,7 @@ import android.widget.Toast;
 
 import com.tonyandr.caminoguide.R;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 /**
@@ -69,6 +64,21 @@ public class MapDeleteFragment extends Fragment {
         fragmentManager = getFragmentManager();
     }
 
+    class DeleteTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            mapDelete(params[0]);
+
+            return params[0];
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            deleteFromList(aVoid);
+        }
+    }
+
     private void checkButtonClick() {
         for (int i = 0; i < mapList.size(); i++) {
             MaplistInfo maplistInfo = mapList.get(i);
@@ -93,45 +103,14 @@ public class MapDeleteFragment extends Fragment {
         }
     }
 
-    private void DeleteFiles(File f) { // Delete *.tiles and *.stg
+    private void DeleteFiles(File f) { // Delete *.zip
 
-        FileInputStream is;
-        BufferedReader reader;
-        File toDel;
         Log.d("Delete", "path: " +f.getAbsolutePath());
         if (f.exists()) {
-            try {
-                is = new FileInputStream(f);
-                reader = new BufferedReader(new InputStreamReader(is));
-                String line = reader.readLine();
-                while (line != null) {
-                    toDel = new File(path_osmdroid+"/tiles"+line.replace("\\", "/"));
-                    toDel.delete();
-                    line = reader.readLine();
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            f.delete();
         }
         else {
             Log.d("Delete", "not exists");
-        }
-        DeleteFoldersRecursive(new File(path_osmdroid + "tiles/MapQuestOSM/"));
-        f.delete();
-    }
-
-    private void DeleteFoldersRecursive(File f) { // Recursive delete empty dirs
-        if (f.isDirectory()){
-            Log.d("Delete", "" + f.getAbsolutePath() + " is dir");
-            if (f.list().length > 0) {
-                for (File child : f.listFiles())
-                    DeleteFoldersRecursive(child);
-            }
-
-            Log.d("Delete", f.getAbsolutePath() +" deleted: " + f.delete());
         }
     }
     private void mapDelete(String title) { // Delete selected stage's maps
@@ -145,13 +124,12 @@ public class MapDeleteFragment extends Fragment {
         }
 
         if (stageId != 0) {
-            File f = new File(path_osmdroid + "stage" + stageId + ".stg");
+            File f = new File(path_osmdroid + "stage" + stageId + ".zip");
             DeleteFiles(f);
         }
         if (title.equals("Spain Base Map")) {
-            File f = new File(path_osmdroid + "8-11_allmap.stg");
+            File f = new File(path_osmdroid + "map_overview.zip");
             DeleteFiles(f);
-
         }
 
     }
@@ -163,15 +141,16 @@ public class MapDeleteFragment extends Fragment {
         stageNames = getResources().getStringArray(R.array.stage_names);
         boolean stages_exist = false;
 
-        File f = new File(path_osmdroid + "8-11_allmap.stg");
+        File f = new File(path_osmdroid + "map_overview.zip");
         if (f.exists()) {
-            mapList.add(new MaplistInfo("40mb", "Spain Base Map", false, true));
+            mapList.add(new MaplistInfo(Math.round(((f.length()/1024)/1024))+"mb", "Spain Base Map", false, true));
         }
 
         int count = 1;
         for (String item : stageNames) {
-            if ((new File(path_osmdroid + "stage" + count + ".stg")).exists()) {
-                mapList.add(new MaplistInfo("10mb", item, false, true));
+            f = new File(path_osmdroid + "stage" + count + ".zip");
+            if (f.exists()) {
+                mapList.add(new MaplistInfo(Math.round(((f.length()/1024)/1024))+"mb", item, false, true));
             }
             count++;
         }
@@ -211,38 +190,6 @@ public class MapDeleteFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-    }
-
-    private class DeleteTask extends AsyncTask<String, Void, Void> {
-        public DeleteTask() {
-        }
-        private String title;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
-
-        @Override
-        protected Void doInBackground(String... params) {
-            title = params[0];
-            Log.d("DeleteTask", "Task for: " + title +" started");
-            mapDelete(title);
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            deleteFromList(title);
-            Log.d("DeleteTask", "Task for: " + title +" finished");
-        }
-
     }
 
     @Override

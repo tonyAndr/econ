@@ -24,8 +24,10 @@ import org.osmdroid.bonuspack.overlays.Marker;
 import org.osmdroid.bonuspack.overlays.Polyline;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Overlay;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Tony on 11-Feb-15.
@@ -36,6 +38,8 @@ public class DrawingMethods implements AppConstants {
     JsonFilesHandler jfh;
     GeoMethods geoMethods;
     DBControllerAdapter dbController;
+    private OnStageLocationData currentData;
+    private OnStageLocationData finishData;
 
     public DrawingMethods(MapView mapView, Context context) {
         this.context = context;
@@ -52,59 +56,22 @@ public class DrawingMethods implements AppConstants {
         geoMethods = new GeoMethods(context);
     }
 
-
-    private Marker drawAlbMarker(Double lat, Double lng, String title, String desc, String snippet, boolean highlighted) {
-        GeoPoint mGeoP = new GeoPoint(lat, lng);
-        // build a new marker pin
-        Marker mPin = new Marker(mapView);
-        mPin.setPosition(mGeoP);
-        mPin.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        if (highlighted) {
-            mPin.setIcon(context.getResources().getDrawable(R.drawable.to_albergue_stage_view));
-        } else {
-            mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_alb_marker));
-        }
-        mPin.setTitle("Albergue " + title);
-        mPin.setSubDescription(desc);
-        mPin.setSnippet(snippet);
-
-        // add new marker pin to map
-        return mPin;
-    }
-
-
-    private Marker drawCityMarker(Double lat, Double lng, String title) {
-
-        GeoPoint mGeoP = new GeoPoint(lat, lng);
-
-        // build a new marker pin
-        Marker mPin = new Marker(mapView);
-        mPin.setPosition(mGeoP);
-        mPin.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-        mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_city_marker2));
-        mPin.setTitle(title);
-//        mPin.setSubDescription(desc);
-//        mPin.setSnippet(snippet);
-
-        // add new marker pin to map
-        return mPin;
-    }
+    // *** Get array of geopoints to osm and gmap
 
     public JSONArray getRouteArray(Location current, Location finish) throws JSONException {
         JSONArray jsonArray = new JSONArray();
         int current_stage, current_point, finish_stage, finish_point;
-        OnStageLocationData onStageLocationData;
-        onStageLocationData = geoMethods.onWhichStage(finish);
-        if (onStageLocationData != null) {
+        finishData = geoMethods.onWhichStage(finish);
+        if (finishData != null) {
             Log.w(DEBUGTAG, "getArray: finish != null");
-            finish_stage = onStageLocationData.stageId;
-            finish_point = onStageLocationData.pointId;
-            onStageLocationData = geoMethods.onWhichStage(current);
+            finish_stage = finishData.stageId;
+            finish_point = finishData.pointId;
+            currentData = geoMethods.onWhichStage(current);
 
-            if (onStageLocationData != null) {
+            if (currentData != null) {
                 Log.w(DEBUGTAG, "getArray: current != null");
-                current_stage = onStageLocationData.stageId;
-                current_point = onStageLocationData.pointId;
+                current_stage = currentData.stageId;
+                current_point = currentData.pointId;
                 if (current_stage == finish_stage) { // Odinakoviy stage
                     Log.w(DEBUGTAG, "getArray: current_stage == finish_stage");
                     JSONObject jsonObject = jfh.parseJSONObj("json/stage" + current_stage + ".json");
@@ -183,7 +150,7 @@ public class DrawingMethods implements AppConstants {
                 Log.w(DEBUGTAG, "getArray: fin_stg = " + finish_stage + " fin_pnt = " + finish_point);
                 JSONObject jsonObject = jfh.parseJSONObj("json/stage" + finish_stage + ".json");
                 JSONArray geoArray = jsonObject.getJSONArray("geo");
-                for (int j = 0; j <= finish_point; j++) {
+                for (int j = 0; j < geoArray.length(); j++) {
                     jsonArray.put(geoArray.getJSONObject(j));
                     Log.w(DEBUGTAG, "getArray: object added");
                 }
@@ -195,6 +162,45 @@ public class DrawingMethods implements AppConstants {
         return jsonArray;
     }
 
+
+    // *** OSM Functions ***
+
+    private Marker drawAlbMarker(Double lat, Double lng, String title, String desc, String snippet, boolean highlighted) {
+        GeoPoint mGeoP = new GeoPoint(lat, lng);
+        // build a new marker pin
+        Marker mPin = new Marker(mapView);
+        mPin.setPosition(mGeoP);
+        mPin.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        if (highlighted) {
+            mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_albergue_marker_red));
+        } else {
+            mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_albergue_marker_green));
+        }
+        mPin.setTitle("Albergue " + title);
+        mPin.setSubDescription(desc);
+        mPin.setSnippet(snippet);
+
+        // add new marker pin to map
+        return mPin;
+    }
+
+    private Marker drawCityMarker(Double lat, Double lng, String title) {
+
+        GeoPoint mGeoP = new GeoPoint(lat, lng);
+
+        // build a new marker pin
+        Marker mPin = new Marker(mapView);
+        mPin.setPosition(mGeoP);
+        mPin.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        mPin.setIcon(context.getResources().getDrawable(R.drawable.ic_locality_marker));
+        mPin.setTitle(title);
+//        mPin.setSubDescription(desc);
+//        mPin.setSnippet(snippet);
+
+        // add new marker pin to map
+        return mPin;
+    }
+
     public double drawDistanceRoute(Location current, Location finish) throws JSONException {
         ArrayList<GeoPoint> waypoints = new ArrayList<>();
         JSONArray geoArr = getRouteArray(current, finish);
@@ -202,8 +208,8 @@ public class DrawingMethods implements AppConstants {
         JSONObject geopoint;
         JSONObject prev_geopoint = new JSONObject();
         double distFromCurrToFin = 0;
-        if (current != null) {
-            if (areaLimitSpain.contains(new GeoPoint(current.getLatitude(), current.getLongitude())))
+        if (currentData != null) {
+//            if (areaLimitSpain.contains(new GeoPoint(current.getLatitude(), current.getLongitude())))
                 waypoints.add(new GeoPoint(current.getLatitude(), current.getLongitude()));
         }
         if (geoArr.length() > 0 ) {
@@ -223,23 +229,37 @@ public class DrawingMethods implements AppConstants {
             }
             distFromCurrToFin = distFromCurrToFin + geoMethods.distance(new LatLng(prev_geopoint.getDouble("lat"), prev_geopoint.getDouble("lng")), new LatLng(finish.getLatitude(), finish.getLongitude()));
         }
-
-        waypoints.add(new GeoPoint(finish.getLatitude(), finish.getLongitude()));
-        routeOverlay.setColor(Color.argb(200, 0, 150, 136));
-        routeOverlay.setWidth(5.0f);
+        if (currentData != null) {
+            waypoints.add(new GeoPoint(finish.getLatitude(), finish.getLongitude()));
+        }
+        routeOverlay.setColor(Color.argb(230, 244, 68, 68));
+        routeOverlay.setWidth(6.0f);
         routeOverlay.setPoints(waypoints);
+        List<Overlay> x = mapView.getOverlays();
+        int i = 0;
+        for (Overlay item: x) {
+            if (item instanceof Polyline) {
+                mapView.getOverlayManager().remove(i);
+            }
+            i++;
+        }
+
         mapView.getOverlays().add(routeOverlay);
 
         return distFromCurrToFin;
     }
 
-
-    public void drawAllRoute() throws JSONException {
+    public void drawAllRoute(Integer stage) throws JSONException {
         JSONObject fileObj, geo;
         JSONArray geoArr;
-        ArrayList<GeoPoint> waypoints = new ArrayList<>();
+        ArrayList<GeoPoint> waypointsStart = new ArrayList<>();
+        ArrayList<GeoPoint> waypointsHighlight = new ArrayList<>();
+        ArrayList<GeoPoint> waypointsFinish = new ArrayList<>();
         GeoPoint newPoint;
-        Polyline routeOverlay = new Polyline(context);
+        Polyline routeOverlayStart = new Polyline(context);
+        Polyline routeOverlayHighlight = new Polyline(context);
+        Polyline routeOverlayFinish = new Polyline(context);
+        boolean finish = false;
         for (int i = 1; i <= 32; i++) {
             fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
             geoArr = fileObj.getJSONArray("geo");
@@ -248,14 +268,45 @@ public class DrawingMethods implements AppConstants {
                 Double lat = geo.getDouble("lat");
                 Double lng = geo.getDouble("lng");
                 newPoint = new GeoPoint(lat, lng);
-                waypoints.add(newPoint);
+                if (stage != null && stage == i) {
+                    waypointsHighlight.add(newPoint);
+                    finish = true;
+                } else {
+                    if (finish) {
+                        waypointsFinish.add(newPoint);
+                    } else {
+                        waypointsStart.add(newPoint);
+                    }
+                }
             }
         }
+        routeOverlayStart.setColor(Color.rgb(0, 150, 136));
+        routeOverlayStart.setWidth(5.0f);
+        routeOverlayStart.setPoints(waypointsStart);
+        routeOverlayFinish.setColor(Color.rgb(0, 150, 136));
+        routeOverlayFinish.setWidth(5.0f);
+        routeOverlayFinish.setPoints(waypointsFinish);
+        routeOverlayHighlight.setColor(Color.rgb(244, 68, 68));
+        routeOverlayHighlight.setWidth(5.0f);
+        routeOverlayHighlight.setPoints(waypointsHighlight);
+        mapView.getOverlays().add(routeOverlayStart);
+        mapView.getOverlays().add(routeOverlayHighlight);
+        mapView.getOverlays().add(routeOverlayFinish);
+    }
 
-        routeOverlay.setColor(Color.rgb(0, 150, 136));
-        routeOverlay.setWidth(5.0f);
-        routeOverlay.setPoints(waypoints);
-        mapView.getOverlays().add(routeOverlay);
+    public void drawCityMarkers(FolderOverlay cityMarkersOverlay) throws JSONException {
+
+        JSONArray routeJArr = dbController.getLocalities();
+        for (int i = 0; i < routeJArr.length(); i++) {
+            JSONObject v = routeJArr.getJSONObject(i);
+            if (v != null) {
+                Double lat = v.getDouble("lat");
+                Double lng = v.getDouble("lng");
+                String title = v.getString("title");
+                cityMarkersOverlay.add(drawCityMarker(lat, lng, title));
+            }
+        }
+        mapView.getOverlays().add(cityMarkersOverlay);
     }
 
     public FolderOverlay drawAlbMarkers(FolderOverlay albMarkersOverlay, Location finish) throws JSONException {
@@ -286,6 +337,8 @@ public class DrawingMethods implements AppConstants {
         return albMarkersOverlay;
     }
 
+    // *** GMAP Functions
+
     public ArrayList<MarkerDataObject> drawAlbMarkersGMAP(Location finish) throws JSONException {
         ArrayList<MarkerDataObject> markers = new ArrayList<>();
         boolean highlighted = false;
@@ -293,7 +346,7 @@ public class DrawingMethods implements AppConstants {
         JSONArray albJArr = dbController.getAlbergues(0);
         for (int i = 0; i < albJArr.length(); i++) {
             JSONObject v = albJArr.getJSONObject(i);
-            String title = v.getString("title");
+            String title = "Albergue " + v.getString("title");
             String snippet = v.getString("tel");
             Double lat = v.getDouble("lat");
             Double lng = v.getDouble("lng");
@@ -302,10 +355,10 @@ public class DrawingMethods implements AppConstants {
                     highlighted = true;
                     vh = v;
                 } else {
-                    markers.add(new MarkerDataObject(new LatLng(lat, lng), title, snippet, R.drawable.ic_alb_marker));
+                    markers.add(new MarkerDataObject(new LatLng(lat, lng), title, snippet, R.drawable.ic_albergue_marker_green));
                 }
             } else {
-                markers.add(new MarkerDataObject(new LatLng(lat, lng), title, snippet, R.drawable.ic_alb_marker));
+                markers.add(new MarkerDataObject(new LatLng(lat, lng), title, snippet, R.drawable.ic_albergue_marker_green));
 
             }
         }
@@ -314,25 +367,10 @@ public class DrawingMethods implements AppConstants {
             Double lng = vh.getDouble("lng");
             String title = vh.getString("title");
             String snippet = vh.getString("tel");
-            markers.add(new MarkerDataObject(new LatLng(lat, lng), title, snippet, R.drawable.to_albergue_stage_view));
+            markers.add(new MarkerDataObject(new LatLng(lat, lng), title, snippet, R.drawable.ic_albergue_marker_red));
         }
 
         return markers;
-    }
-
-    public void drawCityMarkers(FolderOverlay cityMarkersOverlay) throws JSONException {
-
-        JSONArray routeJArr = dbController.getLocalities();
-        for (int i = 0; i < routeJArr.length(); i++) {
-            JSONObject v = routeJArr.getJSONObject(i);
-            if (v != null) {
-                Double lat = v.getDouble("lat");
-                Double lng = v.getDouble("lng");
-                String title = v.getString("title");
-                cityMarkersOverlay.add(drawCityMarker(lat, lng, title));
-            }
-        }
-        mapView.getOverlays().add(cityMarkersOverlay);
     }
 
     public ArrayList<MarkerDataObject> drawCityMarkersGMAP() throws JSONException {
@@ -343,23 +381,24 @@ public class DrawingMethods implements AppConstants {
             if (v != null) {
                 Double lat = v.getDouble("lat");
                 Double lng = v.getDouble("lng");
-                String title = "Albergue " + v.getString("title");
-                markers.add(new MarkerDataObject(new LatLng(lat, lng), title, null, R.drawable.ic_city_marker2));
-
+                String title = v.getString("title");
+                markers.add(new MarkerDataObject(new LatLng(lat, lng), title, null, R.drawable.ic_locality_marker));
             }
         }
         return markers;
     }
 
-    public PolylineOptions drawAllRouteGMAP() throws JSONException {
-        PolylineOptions rectOptions = new PolylineOptions();
+    public ArrayList<PolylineOptions> drawAllRouteGMAP(Integer stage) throws JSONException {
+        PolylineOptions rectOptionsStart = new PolylineOptions();
+        PolylineOptions rectOptionsFinish = new PolylineOptions();
+        PolylineOptions rectOptionsHighlight = new PolylineOptions();
+        boolean finish = false;
 
-        //stage_id == 0 => all route
+
+        //stage == 0 => all route w/o highlight
         JSONObject fileObj, geo;
         JSONArray geoArr;
-        ArrayList<GeoPoint> waypoints = new ArrayList<>();
         LatLng newPoint;
-        // Drawing route, each stage on it's own overlay
         for (int i = 1; i <= 32; i++) {
             fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
             geoArr = fileObj.getJSONArray("geo");
@@ -369,13 +408,27 @@ public class DrawingMethods implements AppConstants {
                 Double lat = geo.getDouble("lat");
                 Double lng = geo.getDouble("lng");
                 newPoint = new LatLng(lat, lng);
-                rectOptions.add(newPoint);
+                if (stage != null && i == stage) {
+                    rectOptionsHighlight.add(newPoint);
+                    finish = true;
+                } else {
+                    if (finish) {
+                        rectOptionsFinish.add(newPoint);
+                    } else {
+                        rectOptionsStart.add(newPoint);
+                    }
+                }
             }
         }
-        rectOptions.color(Color.argb(200, 0, 150, 136)).width(6).geodesic(true);
-        return rectOptions;
+        rectOptionsStart.color(Color.argb(200, 0, 150, 136)).width(6).geodesic(true);
+        rectOptionsFinish.color(Color.argb(200, 0, 150, 136)).width(6).geodesic(true);
+        rectOptionsHighlight.color(Color.argb(255, 244, 68, 68)).width(6).geodesic(true);
+        ArrayList<PolylineOptions> returnList = new ArrayList<PolylineOptions>();
+        returnList.add(rectOptionsStart);
+        returnList.add(rectOptionsHighlight);
+        returnList.add(rectOptionsFinish);
+        return returnList;
     }
-
 
     public GMapReturnObject drawDistanceRouteGMAP(Location current, Location finish) throws JSONException {
         PolylineOptions rectOptions = new PolylineOptions();
@@ -384,8 +437,9 @@ public class DrawingMethods implements AppConstants {
         JSONObject geopoint;
         JSONObject prev_geopoint = new JSONObject();
         double distFromCurrToFin = 0;
-        if (current != null) {
-            rectOptions.add(new LatLng(current.getLatitude(), current.getLongitude()));
+        if (currentData != null) {
+//            if (areaLimitSpainGMap.contains(new LatLng(current.getLatitude(), current.getLongitude())))
+                rectOptions.add(new LatLng(current.getLatitude(), current.getLongitude()));
         }
         if(geoArr.length() > 0) {
             for (int h = 0; h < geoArr.length(); h++) {
@@ -405,11 +459,10 @@ public class DrawingMethods implements AppConstants {
             }
             distFromCurrToFin = distFromCurrToFin + geoMethods.distance(new LatLng(prev_geopoint.getDouble("lat"), prev_geopoint.getDouble("lng")), new LatLng(finish.getLatitude(), finish.getLongitude()));
         }
-
-
-        rectOptions.add(new LatLng(finish.getLatitude(), finish.getLongitude()));
-        rectOptions.color(Color.argb(200, 0, 150, 136)).width(6).geodesic(true);
-
+        if (currentData != null) {
+            rectOptions.add(new LatLng(finish.getLatitude(), finish.getLongitude()));
+        }
+        rectOptions.color(Color.argb(230, 244, 68, 68)).width(6).geodesic(true);
 
         return new GMapReturnObject(distFromCurrToFin, rectOptions);
     }

@@ -1,10 +1,13 @@
 package com.tonyandr.caminoguide.stages;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.tonyandr.caminoguide.R;
@@ -46,6 +49,8 @@ public class StagesAdapter extends ArrayAdapter<StageListItem> {
 //        TextView tvNumber;
         TextView tvStage;
         TextView tvFromTo;
+        ImageView ivTriangle;
+        RelativeLayout layout;
     }
 
     public StagesAdapter(Context context, ArrayList<StageListItem> stages) {
@@ -65,14 +70,31 @@ public class StagesAdapter extends ArrayAdapter<StageListItem> {
 //            viewHolder.tvNumber = (TextView) convertView.findViewById(R.id.tv_number);
             viewHolder.tvStage = (TextView) convertView.findViewById(R.id.tv_stagenumber);
             viewHolder.tvFromTo = (TextView) convertView.findViewById(R.id.tv_from_to);
+            viewHolder.ivTriangle = (ImageView) convertView.findViewById(R.id.triangleIcon);
+            viewHolder.layout = (RelativeLayout) convertView.findViewById(R.id.stage_list_item_layout);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         // Populate the data into the template view using the data object
 //        viewHolder.tvNumber.setText(stage.number);
+
         viewHolder.tvStage.setText((stage.number < 10 ? "0"+stage.number : stage.number)+".");
         viewHolder.tvFromTo.setText(stage.fromTo);
+        if (!stage.current) {
+            viewHolder.ivTriangle.setImageResource(R.drawable.list_triangle);
+            viewHolder.layout.setBackgroundColor(android.R.attr.background);
+            viewHolder.tvFromTo.setTextColor(getContext().getResources().getColor(R.color.colorPrimaryText));
+            viewHolder.tvStage.setTextColor(getContext().getResources().getColor(R.color.colorSecondaryText));
+        } else {
+            viewHolder.layout.setBackgroundColor(Color.rgb(244,68,68));
+            viewHolder.tvStage.setTextColor(Color.WHITE);
+            viewHolder.tvFromTo.setTextColor(Color.WHITE);
+            viewHolder.ivTriangle.setImageResource(R.drawable.list_triangle_white);
+        }
+
+
+
         // Return the completed view to render on screen
         return convertView;
     }

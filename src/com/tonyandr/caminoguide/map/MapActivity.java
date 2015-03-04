@@ -2,6 +2,7 @@
 package com.tonyandr.caminoguide.map;
 
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,6 +36,7 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
     public TextView geoOutTextViewTime;
     SharedPreferences settings;
     private Boolean doubleBackToExitPressedOnce = false;
+    private FragmentManager fm;
 
     DBControllerAdapter dbController;
     private Toolbar toolbar;
@@ -65,7 +67,7 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
         geoOutTextViewLon = (TextView) findViewById(R.id.debugGeoOutputLon);
         geoOutTextViewLat = (TextView) findViewById(R.id.debugGeoOutputLat);
         geoOutTextViewTime = (TextView) findViewById(R.id.debugGeoOutputTime);
-        FragmentManager fm = this.getFragmentManager();
+        fm = this.getFragmentManager();
 
         if (settings.getBoolean("pref_key_offline_mode", true)) {
             if (fm.findFragmentByTag(OSM_FRAGMENT_TAG) == null) {
@@ -98,7 +100,7 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
     @Override
     protected void onResume() {
         super.onResume();
-        FragmentManager fm = this.getFragmentManager();
+        fm = this.getFragmentManager();
         if (settings.getBoolean("pref_key_offline_mode", true)) {
             if (fm.findFragmentByTag(OSM_FRAGMENT_TAG) == null) {
                 OSMFragment mapFragment = OSMFragment.newInstance();
@@ -129,6 +131,13 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
     protected void onDestroy() {
         super.onDestroy();
         settings.unregisterOnSharedPreferenceChangeListener(this);
+        stopService(new Intent(this, GeoService.class));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopService(new Intent(this, GeoService.class));
     }
 
     @Override

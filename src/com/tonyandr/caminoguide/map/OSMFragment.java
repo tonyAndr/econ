@@ -24,11 +24,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tonyandr.caminoguide.R;
 import com.tonyandr.caminoguide.constants.AppConstants;
 import com.tonyandr.caminoguide.stages.StageActivity;
+import com.tonyandr.caminoguide.utils.CustomNewLocationOverlay;
 import com.tonyandr.caminoguide.utils.GeoMethods;
 
 import org.json.JSONException;
@@ -84,7 +86,7 @@ public class OSMFragment extends Fragment implements AppConstants {
     public Location mFinishLocation;
     public String mLastUpdateTime;
     public Boolean mFollowUserLocation;
-    private Intent mServiceIntent;
+    public Intent mServiceIntent;
 
     public BroadcastReceiver br;
     SharedPreferences mSettings;
@@ -92,6 +94,7 @@ public class OSMFragment extends Fragment implements AppConstants {
     private DrawingMethods drawingMethods;
     private Bundle bundle;
     private Location finish;
+    private Boolean mDrawMarkers; // to not draw when recieved broadcast
 
     // Tasks
     private CalculateDistanceTask   calculateDistanceTask;
@@ -117,6 +120,7 @@ public class OSMFragment extends Fragment implements AppConstants {
         mFollowUserLocation = false;
         mLastUpdateTime = "";
         mFirstCameraMove = false;
+        mDrawMarkers = true;
         mPrefs = getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
         if (mPrefs.contains(LOCATION_KEY_LAT)) {
@@ -128,7 +132,7 @@ public class OSMFragment extends Fragment implements AppConstants {
             mLastUpdateTime = mPrefs.getString(KEY_LAST_UPD_TIME, "Not available");
         }
         updateValuesFromBundle(savedInstanceState);
-//        mServiceIntent = new Intent(getActivity(), GeoService.class);
+//        mServiceIntent = new Intent(getActivity(), GeoService.class); ,
 
         br = new BroadcastReceiver() {
             @Override
@@ -137,10 +141,20 @@ public class OSMFragment extends Fragment implements AppConstants {
                 mCurrentLocation = intent.getParcelableExtra(KEY_CURRENT_LOCATION);
                 if (mCurrentLocation != null) {
                     updateUI();
+
+                    if (bundle != null && calculateDistanceTask != null && settings.getBoolean("pref_key_realtime_calculation", false)) {
+                        if (calculateDistanceTask.getStatus() == AsyncTask.Status.FINISHED) {
+                            calculateDistanceTask = new CalculateDistanceTask();
+                            calculateDistanceTask.execute();
+//                            Toast.makeText(getActivity(), "Re-calculation...", Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 }
-                if (mFollowUserLocation != false) {
+                if (mFollowUserLocation) {
                     followUser();
                 }
+
+
             }
         };
         IntentFilter intFilt = new IntentFilter(KEY_SERVICE_ACTION);
@@ -209,14 +223,14 @@ public class OSMFragment extends Fragment implements AppConstants {
             mFinishLocation = new Location("");
             mFinishLocation.setLatitude(bundle.getDouble("lat"));
             mFinishLocation.setLongitude(bundle.getDouble("lng"));
-
+            getActivity().setTitle(bundle.getString("title"));
             if (mCurrentLocation != null) {
                 calculateDistanceTask = new CalculateDistanceTask();
                 calculateDistanceTask.execute();
                 Log.d(DEBUGTAG, "We have location");
                 if (areaLimitSpain.contains(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))) {
                     Log.d(DEBUGTAG, "We are on route");
-                    if (bundle.getBoolean("globe", false)) {
+                    if (bundle.getBoolean("globe", false) && bundle.getBoolean("near", false)) {
                         Log.d(DEBUGTAG, "From globe");
                         mMapView.getController().setCenter(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
                         mMapView.getController().setZoom(SHOW_STAGE_ZOOM_LEVEL);
@@ -237,7 +251,7 @@ public class OSMFragment extends Fragment implements AppConstants {
                 }
             } else {
                 drawAllRouteTask = new DrawAllRouteTask();
-                drawAllRouteTask.execute();
+                drawAllRouteTask.execute(bundle.getInt("stage_id"));
                 Log.d(DEBUGTAG, "No location.");
                 mMapView.getController().setCenter(new GeoPoint(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()));
                 mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
@@ -245,7 +259,7 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         } else {
             drawAllRouteTask = new DrawAllRouteTask();
-            drawAllRouteTask.execute();
+            drawAllRouteTask.execute(0);
             if (mCurrentLocation != null) {
                 Log.d(DEBUGTAG, "We have location and no bundle recieved");
                 if (areaLimitSpain.contains(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))) {
@@ -272,6 +286,11 @@ public class OSMFragment extends Fragment implements AppConstants {
         private double distanceToFinish;
 
         @Override
+        protected void onPreExecute() {
+            showLoadingBanner(getString(R.string.progress_drawing_route));
+        }
+
+        @Override
         protected Void doInBackground(Void... params) {
             try {
                 distanceToFinish = drawingMethods.drawDistanceRoute(mCurrentLocation, mFinishLocation);
@@ -283,24 +302,31 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            drawAlbMarkersTask = new DrawAlbMarkersTask();
-            drawAlbMarkersTask.execute();
-            drawCityMarkersTask = new DrawCityMarkersTask();
-            drawCityMarkersTask.execute();
+            if (mDrawMarkers) {
+                drawCityMarkersTask = new DrawCityMarkersTask();
+                drawCityMarkersTask.execute();
+            }
+
             mMapView.invalidate();
             Toast.makeText(getActivity(), String.format("%.1f", distanceToFinish) + " km left", Toast.LENGTH_LONG).show();
+            hideLoadingBanner();
         }
     }
 
-    class DrawAllRouteTask extends AsyncTask<Void, Void, Void> {
+    class DrawAllRouteTask extends AsyncTask<Integer, Void, Void> {
         public DrawAllRouteTask() {
 
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected void onPreExecute() {
+            showLoadingBanner(getString(R.string.progress_drawing_route));
+        }
+
+        @Override
+        protected Void doInBackground(Integer... params) {
             try {
-                drawingMethods.drawAllRoute();
+                drawingMethods.drawAllRoute(params[0]);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -310,17 +336,25 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            drawAlbMarkersTask = new DrawAlbMarkersTask();
-            drawAlbMarkersTask.execute();
-            drawCityMarkersTask = new DrawCityMarkersTask();
-            drawCityMarkersTask.execute();
+            if (mDrawMarkers) {
+                drawCityMarkersTask = new DrawCityMarkersTask();
+                drawCityMarkersTask.execute();
+                mMapView.getOverlayManager().remove(mLocationOverlay);
+                mMapView.getOverlays().add(mLocationOverlay);
+            }
             mMapView.invalidate();
+            hideLoadingBanner();
         }
     }
 
     class DrawAlbMarkersTask extends AsyncTask<Void, Void, Void> {
         public DrawAlbMarkersTask() {
 
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBanner(getString(R.string.progress_drawing_markers));
         }
 
         @Override
@@ -336,19 +370,25 @@ public class OSMFragment extends Fragment implements AppConstants {
         @Override
         protected void onPostExecute(Void aVoid) {
             mMapView.getOverlays().add(albMarkersOverlay);
-            if (mMapView.getZoomLevel() < 16) {
+            if (mMapView.getZoomLevel() < SHOW_MARKERS_ZOOM_LEVEL) {
                 albMarkersOverlay.setEnabled(false);
             } else {
                 albMarkersOverlay.setEnabled(true);
             }
-
+            mDrawMarkers = false;
             mMapView.invalidate();
+            hideLoadingBanner();
         }
     }
 
     class DrawCityMarkersTask extends AsyncTask<Void, Void, Void> {
         public DrawCityMarkersTask() {
 
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoadingBanner(getString(R.string.progress_drawing_markers));
         }
 
         @Override
@@ -363,8 +403,11 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            drawAlbMarkersTask = new DrawAlbMarkersTask();
+            drawAlbMarkersTask.execute();
             mMapView.getOverlays().add(cityMarkersOverlay);
             mMapView.invalidate();
+            hideLoadingBanner();
         }
     }
 
@@ -396,6 +439,9 @@ public class OSMFragment extends Fragment implements AppConstants {
                 return true;
             }
         });
+
+
+
         mZoomIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -420,8 +466,9 @@ public class OSMFragment extends Fragment implements AppConstants {
 
         this.mCompassOverlay = new CompassOverlay(context, new InternalCompassOrientationProvider(context),
                 mMapView);
-        this.mLocationOverlay = new MyLocationNewOverlay(context, new GpsMyLocationProvider(context),
+        this.mLocationOverlay = new CustomNewLocationOverlay(context, new GpsMyLocationProvider(context),
                 mMapView);
+
 
         mScaleBarOverlay = new ScaleBarOverlay(context);
         mScaleBarOverlay.setCentred(true);
@@ -570,20 +617,28 @@ public class OSMFragment extends Fragment implements AppConstants {
             mServiceIntent = null;
         }
         if (calculateDistanceTask != null) {
-            calculateDistanceTask.cancel(true);
-            Log.d(DEBUGTAG, "calculateTask cancelled");
+            if (calculateDistanceTask.getStatus() != AsyncTask.Status.FINISHED) {
+                calculateDistanceTask.cancel(true);
+                Log.d(DEBUGTAG, "calculateTask cancelled");
+            }
         }
         if (drawAllRouteTask != null) {
-            drawAllRouteTask.cancel(true);
-            Log.d(DEBUGTAG, "drawStageTask cancelled");
+            if (drawAllRouteTask.getStatus() != AsyncTask.Status.FINISHED) {
+                drawAllRouteTask.cancel(true);
+                Log.d(DEBUGTAG, "drawStageTask cancelled");
+            }
         }
-        if (drawAlbMarkersTask != null) {
-            drawAlbMarkersTask.cancel(true);
-            Log.d(DEBUGTAG, "drawAlbTask cancelled");
+        if ( drawAlbMarkersTask != null) {
+            if (drawAlbMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
+                drawAlbMarkersTask.cancel(true);
+                Log.d(DEBUGTAG, "drawAlbTask cancelled");
+            }
         }
         if (drawCityMarkersTask != null) {
-            drawCityMarkersTask.cancel(true);
-            Log.d(DEBUGTAG, "drawCityTask cancelled");
+            if (drawCityMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
+                drawCityMarkersTask.cancel(true);
+                Log.d(DEBUGTAG, "drawCityTask cancelled");
+            }
         }
     }
 
@@ -680,6 +735,14 @@ public class OSMFragment extends Fragment implements AppConstants {
         if (mMapView.getZoomLevel() < TRACK_ZOOM_LEVEL) {
             mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
         }
+    }
+
+    private void showLoadingBanner(String resource) {
+        ((TextView)(getActivity().findViewById(R.id.progress_drawing_id)).findViewById(R.id.progress_drawing_text)).setText(resource);
+        (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.VISIBLE);
+    }
+    private void hideLoadingBanner(){
+        (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.GONE);
     }
 
 }

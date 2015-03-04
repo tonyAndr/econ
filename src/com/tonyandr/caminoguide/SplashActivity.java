@@ -7,10 +7,13 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -38,12 +41,24 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     private boolean mFromSavedInstanceState;
     private Date mLastDBUpdate;
     private GoogleApiClient mGoogleApiClient;
+    private AddAlberguesTask addAlberguesTask;
+    private AddLocalitiesTask addLocalitiesTask;
+    private ProgressBar progressBar;
+    private TextView textView;
+    private int mAlberguesArrayLength;
+//    private JSONArray albergues;
+//    private JSONArray localities;
 
     public BroadcastReceiver br = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("dbservice", "Recieved intent" + intent.getBooleanExtra("broadcast", false));
-            startMapActivity();
+            Log.d("dbservice", "Recieved intent " + intent.getIntExtra("progress", 0));
+
+            progressBar.setProgress(intent.getIntExtra("progress", 0));
+            textView.setText("Albergues... " + intent.getIntExtra("count", 0));
+            if (intent.getBooleanExtra("finished", false)) {
+                startMapActivity();
+            }
         }
     };
 
@@ -52,6 +67,10 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        progressBar = (ProgressBar) findViewById(R.id.progressBar2);
+        progressBar.setMax(100);
+        textView = (TextView) findViewById(R.id.splash_textview);
 
         JsonFilesHandler jfh = new JsonFilesHandler(this);
 
@@ -70,11 +89,21 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
             }
             // getfromfile
             String alb_path = "json/albergues.json";
-            JSONArray albJArr = jfh.parseJSONArr(alb_path);
-            //update
-            Intent intent = new Intent(SplashActivity.this, DBUpdateService.class);
-            intent.putExtra("albergues", albJArr.toString());
-            startService(intent);
+            JSONObject fileObj = jfh.parseJSONObj(alb_path);
+            try {
+                JSONArray albergues = fileObj.getJSONArray("albergues");
+                JSONArray localities = fileObj.getJSONArray("localities");
+                mAlberguesArrayLength = albergues.length();
+                //update
+                Intent intent = new Intent(SplashActivity.this, DBUpdateService.class);
+                intent.putExtra("albergues", albergues.toString());
+                intent.putExtra("localities", localities.toString());
+                startService(intent);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Can't update database!", Toast.LENGTH_LONG).show();
+            }
+
         } else {
             if (isNetworkAvailable()) {
                 final AsyncHttpClient client = new AsyncHttpClient();
@@ -106,6 +135,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
                                     Intent intent = new Intent(SplashActivity.this, DBUpdateService.class);
                                     try {
                                         JSONArray albergues = response.getJSONArray("albergues");
+                                        mAlberguesArrayLength = albergues.length();
                                         JSONArray localities = response.getJSONArray("localities");
                                         intent.putExtra("albergues", albergues.toString());
                                         intent.putExtra("localities", localities.toString());
@@ -117,8 +147,25 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
                                         }
                                     } catch (JSONException e) {
                                         e.printStackTrace();
-                                        Toast.makeText(SplashActivity.this, "Error while updating :/", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(SplashActivity.this, "Error while updating :/", Toast.LENGTH_LONG).show();
                                     }
+
+
+//                                    try {
+//                                        albergues = response.getJSONArray("albergues");
+//                                        localities = response.getJSONArray("localities");
+//
+//
+//                                        if (!mUserLearnedApp) {
+//                                            mUserLearnedApp = true;
+//                                            saveToPreferences(SplashActivity.this, KEY_USER_LEARNED_APP, mUserLearnedApp + "");
+//                                        }
+//                                    } catch (JSONException e) {
+//                                        e.printStackTrace();
+//                                        Toast.makeText(SplashActivity.this, "Error while updating :/", Toast.LENGTH_LONG).show();
+//                                    }
+
+
                                 }
 
                                 @Override
@@ -184,6 +231,21 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
         }
 
         return sharedPreferences.getString(preferenceName, defaultValue);
+    }
+
+    class AddAlberguesTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
+        }
+    }
+    class AddLocalitiesTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
+        }
     }
 
 

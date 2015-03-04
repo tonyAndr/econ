@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -21,7 +22,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -43,7 +43,7 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class GMapFragment extends MapFragment implements AppConstants, OnMapReadyCallback {
+public class GMapFragment extends MapFragment implements AppConstants {
 
 
     public GMapFragment() {
@@ -62,6 +62,9 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
     private Bundle bundle;
     private boolean mFirstCameraMove;
     SharedPreferences settings;
+    private Boolean mDrawMarkers; // to not draw when recieved broadcast
+    private Polyline line;
+
 
     // Tasks
     private CalculateDistanceTask calculateDistanceTask;
@@ -90,7 +93,7 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
 
         mFollowUserLocation = false;
         mLastUpdateTime = "";
-
+        mDrawMarkers = true;
         geoMethods = new GeoMethods(getActivity());
         drawingMethods = new DrawingMethods(getActivity());
 
@@ -144,6 +147,14 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
                 Log.d(DEBUGTAG, "Location broadcast recieved");
                 if (mCurrentLocation != null) {
                     updateUI();
+
+                    if (bundle != null && calculateDistanceTask != null && settings.getBoolean("pref_key_realtime_calculation", false)) {
+                        if (calculateDistanceTask.getStatus() == AsyncTask.Status.FINISHED) {
+                            calculateDistanceTask = new CalculateDistanceTask();
+                            calculateDistanceTask.execute();
+//                            Toast.makeText(getActivity(), "Re-calculation...", Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 }
                 if (mFollowUserLocation != false) {
                     followUser();
@@ -191,18 +202,17 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
             }
         });
 
+
+
         map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                getActivity().findViewById(R.id.zoomInBtn).setVisibility(View.VISIBLE);
-                getActivity().findViewById(R.id.zoomOutBtn).setVisibility(View.VISIBLE);
-                getActivity().findViewById(R.id.getMyLocBtn).setVisibility(View.VISIBLE);
+                showMapControls();
             }
         });
 
         IntentFilter intFilt = new IntentFilter(KEY_SERVICE_ACTION);
         getActivity().registerReceiver(br, intFilt);
-
     }
 
     private void updateUI() {
@@ -255,6 +265,9 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
                 ((StageActivity) getActivity()).geoOutTextViewTime.setVisibility(View.GONE);
             }
         }
+        if (getActivity() instanceof MapActivity) {
+            showMapControls();
+        }
         if (mFollowUserLocation) {
             Toast.makeText(getActivity(), "GPS Tracking On", Toast.LENGTH_SHORT).show();
         }
@@ -269,19 +282,27 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
         }
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
+    private void showMapControls() {
+        getActivity().findViewById(R.id.zoomInBtn).setVisibility(View.VISIBLE);
+        getActivity().findViewById(R.id.zoomOutBtn).setVisibility(View.VISIBLE);
+        getActivity().findViewById(R.id.getMyLocBtn).setVisibility(View.VISIBLE);
+    }
+    private void hideMapControls() {
         getActivity().findViewById(R.id.zoomInBtn).setVisibility(View.GONE);
         getActivity().findViewById(R.id.zoomOutBtn).setVisibility(View.GONE);
         getActivity().findViewById(R.id.getMyLocBtn).setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        hideMapControls();
 
         if (getActivity() instanceof StageActivity) {
             ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.GONE);
             ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.GONE);
             ((StageActivity) getActivity()).geoOutTextViewTime.setVisibility(View.GONE);
         }
-        (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.GONE);
 
         final SharedPreferences.Editor edit = mPrefs.edit();
         if (mCurrentLocation != null) {
@@ -309,21 +330,31 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
             mServiceIntent = null;
         }
         if (calculateDistanceTask != null) {
-            calculateDistanceTask.cancel(true);
-            Log.d(DEBUGTAG, "calculateTask cancelled");
+            if (calculateDistanceTask.getStatus() != AsyncTask.Status.FINISHED) {
+                calculateDistanceTask.cancel(true);
+                Log.d(DEBUGTAG, "calculateTask cancelled");
+            }
         }
         if (drawAllRouteTask != null) {
-            drawAllRouteTask.cancel(true);
-            Log.d(DEBUGTAG, "drawStageTask cancelled");
+            if (drawAllRouteTask.getStatus() != AsyncTask.Status.FINISHED) {
+                drawAllRouteTask.cancel(true);
+                Log.d(DEBUGTAG, "drawStageTask cancelled");
+            }
         }
-        if (drawAlbMarkersTask != null) {
-            drawAlbMarkersTask.cancel(true);
-            Log.d(DEBUGTAG, "drawAlbTask cancelled");
+        if ( drawAlbMarkersTask != null) {
+            if (drawAlbMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
+                drawAlbMarkersTask.cancel(true);
+                Log.d(DEBUGTAG, "drawAlbTask cancelled");
+            }
         }
         if (drawCityMarkersTask != null) {
-            drawCityMarkersTask.cancel(true);
-            Log.d(DEBUGTAG, "drawCityTask cancelled");
+            if (drawCityMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
+                drawCityMarkersTask.cancel(true);
+                Log.d(DEBUGTAG, "drawCityTask cancelled");
+            }
         }
+
+        hideLoadingBanner();
     }
     // GMS Block
     private void updateValuesFromBundle(Bundle savedInstanceState) {
@@ -354,11 +385,6 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
         super.onSaveInstanceState(savedInstanceState);
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        Toast.makeText(getActivity(), "Ready", Toast.LENGTH_SHORT).show();
-    }
-
 
     private class CalculateDistanceTask extends AsyncTask<Void, Void, Void> {
         public CalculateDistanceTask() {
@@ -370,7 +396,8 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
 
         @Override
         protected void onPreExecute() {
-
+            if (mDrawMarkers)
+                showLoadingBanner("Drawing route...");
         }
 
         @Override
@@ -387,26 +414,37 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
         @Override
         protected void onPostExecute(Void aVoid) {
             distanceToFinish = gMapReturnObject.length;
-            Polyline line = map.addPolyline(gMapReturnObject.polylineOptions);
-            drawAlbMarkersTask = new DrawAlbMarkersTask();
-            drawAlbMarkersTask.execute();
-            drawCityMarkersTask = new DrawCityMarkersTask();
-            drawCityMarkersTask.execute();
+            if (line != null) {
+                line.remove();
+            }
+            line = map.addPolyline(gMapReturnObject.polylineOptions);
+
+            if (mDrawMarkers) {
+                drawCityMarkersTask = new DrawCityMarkersTask();
+                drawCityMarkersTask.execute();
+            }
             Toast.makeText(getActivity(), String.format("%.1f", distanceToFinish) + " km left", Toast.LENGTH_LONG).show();
+            hideLoadingBanner();
         }
     }
 
-    class DrawAllRouteTask extends AsyncTask<Void, Void, Void> {
+    class DrawAllRouteTask extends AsyncTask<Integer, Void, Void> {
         public DrawAllRouteTask() {
 
         }
 
-        private PolylineOptions polylineOptions;
+        private ArrayList<PolylineOptions> polylineOptions;
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected void onPreExecute() {
+            showLoadingBanner("Drawing route...");
+        }
+
+        @Override
+        protected Void doInBackground(Integer... params) {
             try {
-                polylineOptions = drawingMethods.drawAllRouteGMAP();
+                Log.w(DEBUGTAG, "globe stage: " + params[0]);
+                polylineOptions = drawingMethods.drawAllRouteGMAP(params[0]);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -415,12 +453,16 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            Polyline line = map.addPolyline(polylineOptions);
+            for (PolylineOptions item:polylineOptions) {
+                Polyline line = map.addPolyline(item);
+            }
 
-            drawAlbMarkersTask = new DrawAlbMarkersTask();
-            drawAlbMarkersTask.execute();
-            drawCityMarkersTask = new DrawCityMarkersTask();
-            drawCityMarkersTask.execute();
+            if (mDrawMarkers) {
+                drawCityMarkersTask = new DrawCityMarkersTask();
+                drawCityMarkersTask.execute();
+            }
+
+            hideLoadingBanner();
         }
     }
 
@@ -433,6 +475,7 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
 
         @Override
         protected void onPreExecute() {
+            showLoadingBanner("Drawing markers...");
         }
 
         @Override
@@ -462,6 +505,8 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
                     item.setVisible(true);
                 }
             }
+            hideLoadingBanner();
+            mDrawMarkers = false;
         }
     }
 
@@ -482,6 +527,7 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
 
         @Override
         protected void onPreExecute() {
+            showLoadingBanner("Drawing markers...");
         }
 
         @Override
@@ -499,13 +545,14 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
             for (MarkerDataObject item : markersData) {
                 map.addMarker(getMarkerOptions(item));
             }
-            (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.GONE);
+            drawAlbMarkersTask = new DrawAlbMarkersTask();
+            drawAlbMarkersTask.execute();
+            hideLoadingBanner();
         }
     }
 
     private void drawLogic() throws JSONException {
         Log.d("drawlogic", "Calculating logic...");
-        (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.VISIBLE);
 
         bundle = getArguments();
         if (bundle != null) {
@@ -518,7 +565,7 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
                 calculateDistanceTask = new CalculateDistanceTask();
                 calculateDistanceTask.execute();
                 Log.d(DEBUGTAG, "We have location");
-                if (bundle.getBoolean("globe", false)) {
+                if (bundle.getBoolean("globe", false) && bundle.getBoolean("near", false)) {
                     Log.d(DEBUGTAG, "From globe");
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), SHOW_STAGE_ZOOM_LEVEL));
                 } else {
@@ -527,14 +574,13 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
 
             } else {
                 drawAllRouteTask = new DrawAllRouteTask();
-                drawAllRouteTask.execute();
+                drawAllRouteTask.execute(bundle.getInt("stage_id"));
                 Log.d(DEBUGTAG, "No location, center to " + mFinishLocation.getLatitude() + ", " + mFinishLocation.getLongitude());
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()), TRACK_ZOOM_LEVEL));
             }
-
         } else {
             drawAllRouteTask = new DrawAllRouteTask();
-            drawAllRouteTask.execute();
+            drawAllRouteTask.execute(0);
             if (mCurrentLocation != null) {
                 Log.d(DEBUGTAG, "We have location and no bundle recieved");
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), SHOW_STAGE_ZOOM_LEVEL));
@@ -545,5 +591,13 @@ public class GMapFragment extends MapFragment implements AppConstants, OnMapRead
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(startPoint, MIN_ZOOM_LEVEL));
             }
         }
+    }
+
+    private void showLoadingBanner(String resource) {
+        ((TextView)(getActivity().findViewById(R.id.progress_drawing_id)).findViewById(R.id.progress_drawing_text)).setText(resource);
+        (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.VISIBLE);
+    }
+    private void hideLoadingBanner(){
+        (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.GONE);
     }
 }

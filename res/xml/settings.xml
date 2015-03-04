@@ -1,52 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="@string/pref_main_options_title"
-        android:key="pref_key_main_settings">
-        <CheckBoxPreference
-            android:key="pref_key_prevent_screenoff"
-            android:summary="@string/pref_summary_prevent_screenoff"
-            android:title="@string/pref_title_prevent_screenoff"
-            android:defaultValue="false"/>
-    </PreferenceCategory>
-    <PreferenceCategory
-        android:key="pref_key_map_settings"
-        android:title="@string/pref_map_settings_title">
-        <CheckBoxPreference android:key="pref_key_offline_mode"
-            android:summary="@string/pref_summary_offline_mode"
-            android:title="@string/pref_title_offline_mode"
-            android:defaultValue="true"/>
-        <Preference
-            android:title="@string/pref_key_download_title"
-            android:key="dl_key"/>
-    </PreferenceCategory>
-    <PreferenceCategory
-        android:title="@string/pref_offline_map_options_title"
-        android:key="pref_key_map_settings">
-        <CheckBoxPreference
-            android:key="pref_key_info_geo"
-            android:summary="@string/pref_summary_info_geo"
-            android:title="@string/pref_title_info_geo"
-            android:defaultValue="true"/>
-        <!--<SwitchPreference-->
-            <!--android:key="pref_key_rotation"-->
-            <!--android:summary="@string/pref_summary_rotation"-->
-            <!--android:title="@string/pref_title_rotation"-->
-            <!--android:defaultValue="false"/>-->
-        <!--<CheckBoxPreference-->
-            <!--android:key="pref_key_locktouch"-->
-            <!--android:summary="@string/pref_summary_locktouch"-->
-            <!--android:title="@string/pref_title_locktouch"-->
-            <!--android:defaultValue="false"/>-->
-        <CheckBoxPreference android:key="pref_key_zoom_controls"
-            android:summary="@string/pref_summary_zoom_controls"
-            android:title="@string/pref_title_zoom_controls"
-            android:defaultValue="true" />
-        <CheckBoxPreference android:key="pref_key_stop_follow"
-            android:summary="@string/pref_summary_stop_follow"
-            android:title="@string/pref_title_stop_follow"
-            android:defaultValue="true"/>
-    </PreferenceCategory>
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="pref_key_prevent_screenoff"
+        android:summary="@string/pref_summary_prevent_screenoff"
+        android:title="@string/pref_title_prevent_screenoff" />
+    <CheckBoxPreference
+    android:defaultValue="false"
+    android:key="pref_key_realtime_calculation"
+    android:summary="Re-drawing route and calculate distance when location will change"
+    android:title="Realtime route calculation" />
+
+    <CheckBoxPreference
+    android:defaultValue="true"
+    android:key="pref_key_info_geo"
+    android:summary="@string/pref_summary_info_geo"
+    android:title="@string/pref_title_info_geo" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="pref_key_offline_mode"
+        android:summary="@string/pref_summary_offline_mode"
+        android:title="@string/pref_title_offline_mode" />
+    <Preference
+        android:key="dl_key"
+        android:title="@string/pref_key_download_title" />
 
 
 
