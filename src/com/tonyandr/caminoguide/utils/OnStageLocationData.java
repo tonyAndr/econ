@@ -7,6 +7,8 @@ public class OnStageLocationData {
 
         public int stageId;
         public int pointId;
+    public  int partId;
+    public boolean alt;
         public double localMin;
 
         public OnStageLocationData(int stageId, int pointId) {

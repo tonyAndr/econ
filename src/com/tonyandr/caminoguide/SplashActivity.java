@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,9 +20,14 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
 import com.tonyandr.caminoguide.constants.AppConstants;
 import com.tonyandr.caminoguide.map.MapActivity;
+import com.tonyandr.caminoguide.utils.DBControllerAdapter;
 import com.tonyandr.caminoguide.utils.DBUpdateService;
+import com.tonyandr.caminoguide.utils.FeedbackObject;
+import com.tonyandr.caminoguide.utils.HttpPostClient;
 import com.tonyandr.caminoguide.utils.JsonFilesHandler;
 
 import org.apache.http.Header;
@@ -31,6 +37,7 @@ import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 
@@ -44,8 +51,10 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     private AddAlberguesTask addAlberguesTask;
     private AddLocalitiesTask addLocalitiesTask;
     private ProgressBar progressBar;
+    private ProgressBar circleProgressBar;
     private TextView textView;
     private int mAlberguesArrayLength;
+    private DBControllerAdapter dbControllerAdapter;
 //    private JSONArray albergues;
 //    private JSONArray localities;
 
@@ -53,6 +62,9 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("dbservice", "Recieved intent " + intent.getIntExtra("progress", 0));
+
+            circleProgressBar.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
 
             progressBar.setProgress(intent.getIntExtra("progress", 0));
             textView.setText("Albergues... " + intent.getIntExtra("count", 0));
@@ -69,8 +81,12 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
         setContentView(R.layout.activity_splash);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar2);
+        circleProgressBar = (ProgressBar) findViewById(R.id.progressBar3);
         progressBar.setMax(100);
         textView = (TextView) findViewById(R.id.splash_textview);
+
+        dbControllerAdapter = new DBControllerAdapter(this);
+        dbControllerAdapter.checkVersion(); // Re-create db if new version
 
         JsonFilesHandler jfh = new JsonFilesHandler(this);
 
@@ -106,6 +122,41 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
         } else {
             if (isNetworkAvailable()) {
+                ArrayList<FeedbackObject> feedbackObjects = new ArrayList<>();
+                feedbackObjects = dbControllerAdapter.getSavedFeedback(FEEDBACK_STATUS_WAIT);
+                for (FeedbackObject item:feedbackObjects) {
+                    RequestParams requestParams = new RequestParams();
+                    requestParams.add("text", item.text);
+                    requestParams.add("lat", ""+item.lat);
+                    requestParams.add("lng", ""+item.lng);
+                    final long id = item.id;
+                    HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
+                        private long _id;
+                        @Override
+                        public void onStart() {
+                            _id = id;
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                            Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+                            Log.e(DEBUGTAG, "Response: " + responseString);
+//                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                            if (responseString.equals("OK")) {
+                                dbControllerAdapter.updateFeedback(_id, 1);
+//                                Toast.makeText(SplashActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
+                                Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
+                            } else {
+                                Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+                            }
+                        }
+                    });
+                }
+
                 final AsyncHttpClient client = new AsyncHttpClient();
                 client.get("http://alberguenajera.es/projects/gms/get_update_date.php", new JsonHttpResponseHandler() {
                     @Override
@@ -224,9 +275,9 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     public static String readFromPreferences(Context context, String preferenceName, String defaultValue) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        if (sharedPreferences.contains(LOCATION_KEY_LAT)) {
+        if (sharedPreferences.contains("lat")) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.remove(LOCATION_KEY_LAT).remove(LOCATION_KEY_LNG);
+            editor.remove("lat").remove("lng");
             editor.commit();
         }
 

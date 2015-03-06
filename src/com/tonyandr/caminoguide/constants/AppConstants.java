@@ -66,6 +66,9 @@ public interface AppConstants {
 
 
     final static String ACTION_QUEUE_RECEIVER = "action_queue_reciever";
+
+    static final int FEEDBACK_STATUS_SENT = 1;
+    static final int FEEDBACK_STATUS_WAIT = 0;
 	// ===========================================================
 	// Methods
 	// ===========================================================

@@ -21,11 +21,12 @@
     <ProgressBar
         android:id="@+id/progressBar2"
         style="@style/CustomProgressBarHorizontal"
-        android:layout_width="150dp"
+        android:layout_width="160dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="103dp" />
+        android:visibility="gone"
+        android:layout_marginBottom="100dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -37,5 +38,14 @@
         android:layout_alignTop="@+id/progressBar2"
         android:gravity="center"
         android:textColor="#FFF"
-        android:text="Loading..." />
+        android:text="" />
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar3"
+        android:layout_marginBottom="85dp"
+        android:layout_alignParentBottom="true"
+
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

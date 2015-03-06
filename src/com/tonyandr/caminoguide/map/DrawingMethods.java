@@ -260,7 +260,7 @@ public class DrawingMethods implements AppConstants {
         Polyline routeOverlayHighlight = new Polyline(context);
         Polyline routeOverlayFinish = new Polyline(context);
         boolean finish = false;
-        for (int i = 1; i <= 32; i++) {
+        for (int i = 1; i < 32; i++) {
             fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
             geoArr = fileObj.getJSONArray("geo");
             for (int h = 0; h < geoArr.length(); h++) {
@@ -399,7 +399,7 @@ public class DrawingMethods implements AppConstants {
         JSONObject fileObj, geo;
         JSONArray geoArr;
         LatLng newPoint;
-        for (int i = 1; i <= 32; i++) {
+        for (int i = 1; i < 32; i++) {
             fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
             geoArr = fileObj.getJSONArray("geo");
 

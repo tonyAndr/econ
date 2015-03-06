@@ -2,18 +2,24 @@ package com.tonyandr.caminoguide.utils;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import com.tonyandr.caminoguide.constants.AppConstants;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * Created by Tony on 14-Feb-15.
  */
-public class DBControllerAdapter {
+public class DBControllerAdapter implements AppConstants{
 
     DBController dbController;
 
@@ -51,6 +57,28 @@ public class DBControllerAdapter {
         return id;
     }
 
+    public long insertFeedback(String text, double lat, double lng, int status) {
+        SQLiteDatabase db = dbController.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(dbController.feedback.TEXT, text);
+        cv.put(dbController.feedback.LAT, lat);
+        cv.put(dbController.feedback.LNG, lng);
+        cv.put(dbController.feedback.STATUS, status);
+
+        long id = db.insert(dbController.feedback.TABLE_NAME, null, cv);
+        db.close();
+        return id;
+    }
+    public int updateFeedback(long id, int status) {
+        SQLiteDatabase db = dbController.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(dbController.feedback.STATUS, status);
+
+        int count = db.update(dbController.feedback.TABLE_NAME, cv, dbController.feedback.UID + " = ?", new String[] {id+""});
+        db.close();
+        return count;
+    }
+
     public int eraseLocality() {
         SQLiteDatabase db = dbController.getWritableDatabase();
         int count = db.delete(dbController.locality.TABLE_NAME, null, null);
@@ -63,6 +91,24 @@ public class DBControllerAdapter {
         int count = db.delete(dbController.albergues.TABLE_NAME, null, null);
         db.close();
         return count;
+    }
+
+    public ArrayList<FeedbackObject> getSavedFeedback(int status) {
+        ArrayList<FeedbackObject> list = new ArrayList<>();
+        SQLiteDatabase db = dbController.getWritableDatabase();
+
+        String[] columns = {dbController.feedback.UID, dbController.feedback.TEXT, dbController.feedback.LAT, dbController.feedback.LNG};
+        Cursor cursor;
+        cursor = db.query(dbController.feedback.TABLE_NAME, columns, dbController.feedback.STATUS + " = '"+status+"'", null, null, null, null);
+        while (cursor.moveToNext()) {
+            list.add(new FeedbackObject(cursor.getLong(cursor.getColumnIndex(dbController.feedback.UID)),
+                    cursor.getString(cursor.getColumnIndex(dbController.feedback.TEXT)),
+                    cursor.getDouble(cursor.getColumnIndex(dbController.feedback.LAT)),
+                    cursor.getDouble(cursor.getColumnIndex(dbController.feedback.LNG))));
+        }
+
+        db.close();
+        return list;
     }
 
     public JSONArray getAlbergues(int stage_id) throws JSONException {
@@ -120,12 +166,18 @@ public class DBControllerAdapter {
         return array;
     }
 
+    public void checkVersion() {
+        SQLiteDatabase db = dbController.getWritableDatabase();
+        db.close();
+    }
+
     static class DBController extends SQLiteOpenHelper {
 
         private static final String DATABASE_NAME = "caminodatabase";
-        private static final int DATABASE_VERSION = 5;
+        private static final int DATABASE_VERSION = 11;
         private final Albergues albergues = new Albergues();
         private final Locality locality = new Locality();
+        private final Feedback feedback = new Feedback();
         Context context;
 
 
@@ -151,6 +203,15 @@ public class DBControllerAdapter {
             String LNG = "lng";
         }
 
+        final class Feedback {
+            String TABLE_NAME = "FEEDBACK";
+            String UID = "_id";
+            String TEXT = "text";
+            String LAT = "lat";
+            String LNG = "lng";
+            String STATUS = "status";
+        }
+
         public DBController(Context applicationcontext) {
             super(applicationcontext, DATABASE_NAME, null, DATABASE_VERSION);
             this.context = applicationcontext;
@@ -159,6 +220,7 @@ public class DBControllerAdapter {
         //Creates Table
         @Override
         public void onCreate(SQLiteDatabase database) {
+            Log.w(DEBUGTAG, "Creating tables");
             String query;
             query = "CREATE TABLE " + albergues.TABLE_NAME + " ( " + albergues.UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                     " " + albergues.TITLE + " TEXT, " + albergues.TYPE + " TEXT," + albergues.ADDRESS + " TEXT," +
@@ -166,19 +228,32 @@ public class DBControllerAdapter {
                     " " + albergues.LAT + " DOUBLE," + " " + albergues.STAGE + " INTEGER," +
                     " " + albergues.LNG + " DOUBLE, " + albergues.TEL + " TEXT)";
             database.execSQL(query);
-            query = "CREATE TABLE " + locality.TABLE_NAME + " ( " + locality.UID + " INTEGER," +
+            query = "CREATE TABLE " + locality.TABLE_NAME + " ( " + locality.UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                     " " + locality.TITLE + " TEXT," + " " + locality.LAT + " DOUBLE," +
                     " " + locality.LNG + " DOUBLE)";
+            database.execSQL(query);
+            query = "CREATE TABLE " + feedback.TABLE_NAME + " ( " + feedback.UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    " " + feedback.TEXT + " TEXT," + " " + feedback.LAT + " DOUBLE," +
+                    " " + feedback.LNG + " DOUBLE, " +feedback.STATUS + " INTEGER)";
             database.execSQL(query);
 //            Toast.makeText(context, "DB Created", Toast.LENGTH_LONG).show();
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase database, int version_old, int current_version) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            if(sharedPreferences.contains("db_update_date")) {
+                SharedPreferences.Editor e = sharedPreferences.edit();
+                e.remove("db_update_date");
+                e.commit();
+            }
+            Log.w(DEBUGTAG, "Drop tables");
             String query;
             query = "DROP TABLE IF EXISTS " + albergues.TABLE_NAME;
             database.execSQL(query);
             query = "DROP TABLE IF EXISTS " + locality.TABLE_NAME;
+            database.execSQL(query);
+            query = "DROP TABLE IF EXISTS " + feedback.TABLE_NAME;
             database.execSQL(query);
             onCreate(database);
 //            Toast.makeText(context, "DB Upgraded", Toast.LENGTH_LONG).show();

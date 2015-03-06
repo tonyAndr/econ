@@ -1,40 +1,156 @@
 package com.tonyandr.caminoguide.feedback;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
+import com.tonyandr.caminoguide.NavigationDrawerLayout;
 import com.tonyandr.caminoguide.R;
+import com.tonyandr.caminoguide.constants.AppConstants;
+import com.tonyandr.caminoguide.utils.DBControllerAdapter;
+import com.tonyandr.caminoguide.utils.FeedbackObject;
+import com.tonyandr.caminoguide.utils.HttpPostClient;
 
-public class FeedbackActivity extends ActionBarActivity {
+import org.apache.http.Header;
+
+import java.util.ArrayList;
+
+public class FeedbackActivity extends ActionBarActivity implements AppConstants{
+
+    private Toolbar toolbar;
+    private NavigationDrawerLayout drawerFragment;
+    private Button sendFeedbackBtn;
+    private Button okFeedbackBtn;
+    private DBControllerAdapter dbController;
+    private EditText editText;
+    private CheckBox checkBox;
+    private SharedPreferences mPrefs;
+    private RelativeLayout successLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feedback);
+        dbController = new DBControllerAdapter(this);
+        mPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        editText = (EditText) findViewById(R.id.feedback_text);
+        checkBox = (CheckBox) findViewById(R.id.feedback_geo_cb);
+        successLayout = (RelativeLayout) findViewById(R.id.feedback_success_layout);
+
+        okFeedbackBtn = (Button) findViewById(R.id.feedback_success_OK);
+        okFeedbackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                successLayout.setVisibility(View.GONE);
+            }
+        });
+
+
+        sendFeedbackBtn = (Button) findViewById(R.id.send_feedback_btn);
+        sendFeedbackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editText.getText().length() < 10) {
+                    Toast.makeText(FeedbackActivity.this, "Write minimum 10 symbols", Toast.LENGTH_SHORT).show();
+                } else {
+                    final long id = dbController.insertFeedback(editText.getText().toString(), mPrefs.getFloat("lat", 0), mPrefs.getFloat("lng", 0), 0);
+                    if (isNetworkAvailable()) {
+                        sendSavedFeedback();
+                        RequestParams requestParams = new RequestParams();
+                        requestParams.add("text", editText.getText().toString());
+                        requestParams.add("lat", ""+mPrefs.getFloat("lat", 0));
+                        requestParams.add("lng", ""+mPrefs.getFloat("lng", 0));
+                        HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                                Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+                                Log.e(DEBUGTAG, "Response: " + responseString);
+                                Toast.makeText(FeedbackActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                                if (responseString.equals("OK")) {
+                                    dbController.updateFeedback(id, 1);
+//                                Toast.makeText(FeedbackActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
+                                    successLayout.setVisibility(View.VISIBLE);
+                                } else {
+                                    Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+                                }
+                            }
+                        });
+                    } else {
+                        Toast.makeText(FeedbackActivity.this, "No connection, message saved", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+            }
+        });
+
+        toolbar = (Toolbar) findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        drawerFragment = (NavigationDrawerLayout) getSupportFragmentManager().findFragmentById(R.id.fragment_nav_drawer);
+        drawerFragment.setUp(R.id.fragment_nav_drawer,(DrawerLayout)findViewById(R.id.drawer_layout), toolbar);
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_feedback, menu);
-        return true;
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    private void sendSavedFeedback() {
+        ArrayList<FeedbackObject> feedbackObjects = new ArrayList<>();
+        feedbackObjects = dbController.getSavedFeedback(FEEDBACK_STATUS_WAIT);
+        for (FeedbackObject item:feedbackObjects) {
+            RequestParams requestParams = new RequestParams();
+            requestParams.add("text", item.text);
+            requestParams.add("lat", ""+item.lat);
+            requestParams.add("lng", ""+item.lng);
+            final long id = item.id;
+            HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
+                private long _id;
+                @Override
+                public void onStart() {
+                    _id = id;
+                }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                    Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+                    Log.e(DEBUGTAG, "Response: " + responseString);
+//                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                    if (responseString.equals("OK")) {
+                        dbController.updateFeedback(_id, 1);
+//                                Toast.makeText(SplashActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
+                        Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
+                    } else {
+                        Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+                    }
+                }
+            });
         }
-
-        return super.onOptionsItemSelected(item);
     }
 }

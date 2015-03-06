@@ -60,9 +60,8 @@
         <item>Hontanas - Boadilla del Camino</item>
         <item>Boadilla del Camino - Carrión de los Condes</item>
         <item>Carrión de los Condes - Terradillos de los Templarios</item>
-        <item>Terradillos de los Templarios - Sahagun</item>
-        <item>Sahagun - Mansilla de las Mulas</item>
-        <item>Mansilla de las Mulas - León</item>
+        <item>Terradillos de los Templarios - El Burgo Ranero</item>
+        <item>El Burgo Ranero - León</item>
         <item>León - San Martín del Camino</item>
         <item>San Martín del Camino - Astorga</item>
         <item>Astorga - Foncebadón</item>
@@ -76,7 +75,6 @@
         <item>Palas de Rei - Arzúa</item>
         <item>Arzúa - Pedrouzo</item>
         <item>Pedrouzo - Santiago de Compostela</item>
-        <item>Test stage</item>
     </string-array>
 
     <string name="title_activity_map_manager">MapManagerActivity</string>
@@ -104,5 +102,7 @@
     <string name="stage_activity_list_fragment_title">Stages</string>
     <string name="progress_drawing_route">Drawing route...</string>
     <string name="progress_drawing_markers">Drawing markers...</string>
+    <string name="send_my_coordinates">Send my location</string>
+    <string name="feedback_thank_you">Thank you!</string>
 
 </resources>
