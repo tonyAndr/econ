@@ -58,7 +58,7 @@ public interface AppConstants {
     static final String KEY_FOLLOW_USER = "mFollowUserLocation";
     static final String KEY_FIRST_CAMERA_MOVE = "fisrtCameraMove";
     static final int TRACK_ZOOM_LEVEL = 16;
-    static final int FIRST_SHOW_ZOOM_LEVEL = 12;
+    static final int FIRST_SHOW_ZOOM_LEVEL = 10;
     static final int SHOW_MARKERS_ZOOM_LEVEL = 14;
     static final int SHOW_STAGE_ZOOM_LEVEL = 12;
     static final int MIN_ZOOM_LEVEL = 10;

@@ -37,7 +37,7 @@ import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
 import org.osmdroid.events.ZoomEvent;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ScaleBarOverlay;
@@ -411,7 +411,16 @@ public class OSMFragment extends Fragment implements AppConstants {
 
     private void setUpMapView() {
 
-        mMapView.setTileSource(TileSourceFactory.MAPNIK);
+//        mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
+        mMapView.setTileSource(new XYTileSource("MapQuest",
+                ResourceProxy.string.mapquest_osm, 10, 18, 256, ".jpg", new String[] {
+                "http://otile1.mqcdn.com/tiles/1.0.0/map/",
+                "http://otile2.mqcdn.com/tiles/1.0.0/map/",
+                "http://otile3.mqcdn.com/tiles/1.0.0/map/",
+                "http://otile4.mqcdn.com/tiles/1.0.0/map/"}));
+//        CacheManager cacheManager = new CacheManager(mMapView);
+//        cacheManager.cleanAreaAsync(getActivity(),areaLimitSpain,10,10);
+
         mMapView.setUseDataConnection(false); //optional, but a good way to prevent loading from the network and test your zip loading.
         mMapView.getController().setZoom(MIN_ZOOM_LEVEL);
         mMapView.setMinZoomLevel(MIN_ZOOM_LEVEL);

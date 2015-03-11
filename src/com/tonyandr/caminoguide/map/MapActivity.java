@@ -23,7 +23,6 @@ import android.widget.Toast;
 
 import com.tonyandr.caminoguide.NavigationDrawerLayout;
 import com.tonyandr.caminoguide.R;
-import com.tonyandr.caminoguide.utils.DBControllerAdapter;
 
 
 /**
@@ -33,7 +32,6 @@ import com.tonyandr.caminoguide.utils.DBControllerAdapter;
  */
 public class MapActivity extends ActionBarActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private static final int DIALOG_ABOUT_ID = 1;
     private static final String OSM_FRAGMENT_TAG = "com.tonyandr.caminoguide.osm_tag";
     private static final String GMS_FRAGMENT_TAG = "com.tonyandr.caminoguide.gms_tag";
     public TextView geoOutTextViewLon;
@@ -43,7 +41,6 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
     private Boolean doubleBackToExitPressedOnce = false;
     private FragmentManager fm;
 
-    DBControllerAdapter dbController;
     private Toolbar toolbar;
 
     // ===========================================================
@@ -90,11 +87,11 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
 
     private void checkGPS() {
         LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+        if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
                 !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             // Build the alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Location Services disabled");
+            builder.setTitle("Where are you?");
             builder.setMessage("Please enable Location Services and GPS");
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                 @Override
@@ -102,7 +99,7 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
                     dialog.cancel();
                 }
             });
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton("Enable", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialogInterface, int i) {
                     // Show location settings when the user acknowledges the alert dialog
                     Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
