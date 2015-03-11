@@ -31,7 +31,7 @@ public class MoveService extends Service implements AppConstants{
     private BroadcastReceiver receiverDownloadComplete;
     private BroadcastReceiver receiverNotificationClicked;
     private BroadcastReceiver receiverQueueAdd;
-    private ArrayList<ParcebleDownloadQueue> queue;
+    private ArrayList<ParcebleDownloadQueue> queue = new ArrayList<>();
     static DownloadManager downloadManager;
 
 
@@ -44,7 +44,8 @@ public class MoveService extends Service implements AppConstants{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        queue = intent.getParcelableArrayListExtra("download_list");
+        if (intent != null)
+            queue = intent.getParcelableArrayListExtra("download_list");
 
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 

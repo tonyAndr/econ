@@ -402,7 +402,7 @@ public class FragmentStageView extends Fragment implements AppConstants {
         private String stageName;
         private int highlightId;
 
-        public JSONArray jsonArr;
+        public JSONArray jsonArr = new JSONArray();
 
         @Override
         protected void onPreExecute() {
@@ -419,18 +419,34 @@ public class FragmentStageView extends Fragment implements AppConstants {
             Log.v("STAGE", "Index in async: " + params[0]);
             JSONObject fileObj = jfh.parseJSONObj("json/stage" + params[0] + ".json");
             try {
+                Location gps = getGPS();
+                OnStageLocationData onStageLocationData = geoMethods.onWhichStage(gps);
                 stageName = fileObj.getString("name");
-                jsonArr = fileObj.getJSONArray("geo");
+                int parts = fileObj.getInt("parts");
+                JSONObject main = fileObj.getJSONObject("main");
+                int highlightCount = 0;
+                for (int i = 0; i < parts; i++) {
+                    JSONArray ar = main.getJSONArray(i + "");
+                    for (int j = 0; j < ar.length(); j++)  {
+                        jsonArr.put(ar.getJSONObject(j));
+                        if (onStageLocationData != null  && onStageLocationData.stageId == params[0]) {
+                            near = true;
+                            if (i <= onStageLocationData.partId) {
+                                if (i == onStageLocationData.partId && j == onStageLocationData.pointId) {
+                                    highlightCount++;
+                                    highlightId = highlightCount;
+                                } else {
+                                    highlightCount++;
+                                }
+                            }
+                        }
+                    }
+                }
                 JSONObject geo;
                 JSONObject prev_geopoint = new JSONObject();
                 double dist = 0;
                 double minDist = 999;
-                Location gps = getGPS();
-                OnStageLocationData onStageLocationData = geoMethods.onWhichStage(gps);
-                if (onStageLocationData != null && onStageLocationData.stageId == params[0]) {
-                    near = true;
-                    highlightId = onStageLocationData.pointId;
-                }
+
                 mStageKmLeft = 0;
                 for (int h = 0; h < jsonArr.length(); h++) {
                     geo = jsonArr.getJSONObject(h);

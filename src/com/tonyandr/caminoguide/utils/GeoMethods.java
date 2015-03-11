@@ -19,8 +19,10 @@ import java.util.ArrayList;
  */
 public class GeoMethods implements AppConstants {
     Context context;
+    DBControllerAdapter dbController;
     public GeoMethods(Context context) {
         this.context = context;
+        dbController = new DBControllerAdapter(context);
     }
     JsonFilesHandler jfh;
     // Location near our stage?
@@ -30,35 +32,42 @@ public class GeoMethods implements AppConstants {
             ArrayList<Integer> stages = new ArrayList<>();
 
             jfh = new JsonFilesHandler(context);
-            int stage_id = 0;
-            JSONArray jsonArray = jfh.parseJSONArr("json/bounds.json");
-            for (int i = 0; i < jsonArray.length(); i++) {
-                fileObj = jsonArray.getJSONObject(i);
-                max = fileObj.getJSONObject("maxlatlng");
-                min = fileObj.getJSONObject("minlatlng");
-                LatLngBounds box = new LatLngBounds((new LatLng(min.getDouble("lat"), min.getDouble("lng"))),(new LatLng(max.getDouble("lat"), max.getDouble("lng"))));
-                if (box.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
-                    stages.add(fileObj.getInt("stageid"));
-                    Log.w(DEBUGTAG, "Close to stage #"+fileObj.getInt("stageid"));
+            int stage_id = dbController.getStageFromLocation(location);
+            if (stage_id == 0) {
+                JSONArray jsonArray = jfh.parseJSONArr("json/bounds.json");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    fileObj = jsonArray.getJSONObject(i);
+                    max = fileObj.getJSONObject("maxlatlng");
+                    min = fileObj.getJSONObject("minlatlng");
+                    LatLngBounds box = new LatLngBounds((new LatLng(min.getDouble("lat"), min.getDouble("lng"))),(new LatLng(max.getDouble("lat"), max.getDouble("lng"))));
+                    if (box.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
+                        stages.add(fileObj.getInt("stageid"));
+                        Log.w(DEBUGTAG, "Close to stage #"+fileObj.getInt("stageid"));
+                    }
                 }
+            } else {
+                stages.add(stage_id);
             }
+
             if (stages.size() > 0) {
                 Log.w(DEBUGTAG, "Close to stages count #"+stages.size());
 
                 double localMin = 9999;
-                int localPointId = 0;
+                int localPointId = 0, partId = 0;
+                boolean alt = false;
                 for (int id:stages) {
                     fileObj = jfh.parseJSONObj("json/stage" + id + ".json");
-                    OnStageLocationData onStageLocationData = getMinFromArray(fileObj, location);
+                    OnStageLocationData onStageLocationData = getMinFromStage(fileObj, location);
                     double thisMin = onStageLocationData.localMin;
-                    int thisPointId = onStageLocationData.pointId;
                     if(localMin > thisMin) {
                         localMin = thisMin;
                         stage_id = id;
-                        localPointId = thisPointId;
+                        partId = onStageLocationData.partId;
+                        localPointId = onStageLocationData.pointId;
+                        alt = onStageLocationData.alt;
                     }
                 }
-                return new OnStageLocationData(stage_id, localPointId);
+                return new OnStageLocationData(stage_id, partId, localPointId, alt);
             }
         }
         return null;
@@ -85,8 +94,42 @@ public class GeoMethods implements AppConstants {
         return 0;
     }
 
-    private OnStageLocationData getMinFromArray (JSONObject jsonObject, Location location) throws JSONException {
-        JSONArray jsonArray = jsonObject.getJSONArray("geo");
+    private OnStageLocationData getMinFromStage (JSONObject jsonObject, Location location) throws JSONException {
+        double localMin = 9999;
+        int pointId = 0, partId = 0;
+        boolean alt_way = false;
+        OnStageLocationData data;
+        int parts = jsonObject.getInt("parts");
+        JSONObject main = jsonObject.getJSONObject("main");
+        for (int i=0; i<parts;i++){
+            JSONArray part = main.getJSONArray(i+"");
+            data = getMinFromArray(part,location);
+            if (localMin > data.localMin) {
+                localMin = data.localMin;
+                pointId = data.pointId;
+                partId = i;
+                alt_way = false;
+            }
+        }
+        if (parts > 1) {
+            JSONObject alt = jsonObject.getJSONObject("alt");
+            for (int i=0; i<parts;i++){
+                if(alt.has(i+"")) {
+                    JSONArray part = alt.getJSONArray(i+"");
+                    data = getMinFromArray(part,location);
+                    if (localMin > data.localMin) {
+                        localMin = data.localMin;
+                        pointId = data.pointId;
+                        partId = i;
+                        alt_way = true;
+                    }
+                }
+            }
+        }
+
+        return new OnStageLocationData(localMin, partId, pointId, alt_way);
+    }
+    private OnStageLocationData getMinFromArray (JSONArray jsonArray, Location location) throws JSONException {
         double localMin = 9999;
         int id = 0;
         for (int i=0; i<jsonArray.length(); i++) {
@@ -114,19 +157,6 @@ public class GeoMethods implements AppConstants {
         lL.setLongitude(last.longitude);
 
         return lL.distanceTo(cL)/1000;
-    }
-
-    public static double distFrom(double lat1, double lng1, double lat2, double lng2) {
-        double earthRadius = 6371; //kilometers
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLng = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double dist = (earthRadius * c);
-
-        return dist;
     }
 
 }

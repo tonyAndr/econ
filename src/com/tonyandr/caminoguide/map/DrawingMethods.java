@@ -40,6 +40,7 @@ public class DrawingMethods implements AppConstants {
     DBControllerAdapter dbController;
     private OnStageLocationData currentData;
     private OnStageLocationData finishData;
+    private JSONArray returnArray;
 
     public DrawingMethods(MapView mapView, Context context) {
         this.context = context;
@@ -58,7 +59,7 @@ public class DrawingMethods implements AppConstants {
 
     // *** Get array of geopoints to osm and gmap
 
-    public JSONArray getRouteArray(Location current, Location finish) throws JSONException {
+    public JSONArray getRouteArrayOld(Location current, Location finish) throws JSONException {
         JSONArray jsonArray = new JSONArray();
         int current_stage, current_point, finish_stage, finish_point;
         finishData = geoMethods.onWhichStage(finish);
@@ -118,7 +119,6 @@ public class DrawingMethods implements AppConstants {
                                     Log.w(DEBUGTAG, "getArray: object added");
                                 }
                             }
-
                         }
                     } else {
                         Log.w(DEBUGTAG, "getArray: Tochka dalwee chem curr_stage, dvij forward");
@@ -162,6 +162,340 @@ public class DrawingMethods implements AppConstants {
         return jsonArray;
     }
 
+    public JSONArray getRouteArray(Location current, Location finish) throws JSONException {
+        returnArray = new JSONArray();
+        String current_type, finish_type;
+        finishData = geoMethods.onWhichStage(finish);
+        if (finishData != null) {
+            finish_type = (finishData.alt ? "alt" : "main");
+            Log.w(DEBUGTAG, "getArray: finish != null");
+            currentData = geoMethods.onWhichStage(current);
+            if (currentData != null) {
+                current_type = (currentData.alt ? "alt" : "main");
+                if (currentData.stageId == finishData.stageId) {
+                    JSONObject jsonObject = jfh.parseJSONObj("json/stage" + currentData.stageId + ".json");
+                    if (currentData.partId == finishData.partId) {
+                        if (currentData.alt == finishData.alt) {
+                            pointSamePartSameAlt(jsonObject, current_type);
+                        } else {
+                            pointSamePartDiffAlt(jsonObject, current_type, finish_type);
+                        }
+                    } else if (currentData.partId > finishData.partId) {
+                        pointDiffPartBackward(jsonObject, current_type, finish_type);
+                    } else if (currentData.partId < finishData.partId) {
+                        pointDiffPartForward(jsonObject, current_type, finish_type);
+                    }
+                } else if (currentData.stageId > finishData.stageId) {
+                    pointDiffStageBackward(current_type, finish_type);
+                } else if (currentData.stageId < finishData.stageId) {
+                    pointDiffStageForward(current_type, finish_type);
+                }
+            } else {
+                JSONObject jsonObject = jfh.parseJSONObj("json/stage" + finishData.stageId + ".json");
+                for (int i = 0; i < jsonObject.getInt("parts"); i++) {
+                    if (i == finishData.partId) {
+                        returnArray = jsonObject.getJSONObject(finish_type).getJSONArray(finishData.partId + "");
+                    } else {
+                        returnArray = jsonObject.getJSONObject("main").getJSONArray(i + "");
+                    }
+                }
+            }
+        }
+        return returnArray;
+    }
+
+    private void pointSamePartSameAlt(JSONObject obj, String type) throws JSONException {
+        JSONArray arr = obj.getJSONObject(type).getJSONArray(currentData.partId + "");
+        if (currentData.pointId > finishData.pointId) {
+            for (int i = currentData.pointId; i >= finishData.pointId; i--) {
+                returnArray.put(arr.getJSONObject(i));
+            }
+        } else if (currentData.pointId < finishData.pointId) {
+            for (int i = currentData.pointId; i <= finishData.pointId; i++) {
+                returnArray.put(arr.getJSONObject(i));
+            }
+        } else {
+
+        }
+    }
+
+    private void pointSamePartDiffAlt(JSONObject obj, String cur_type, String fin_type) throws JSONException {
+        JSONArray cur = obj.getJSONObject(cur_type).getJSONArray(currentData.partId + "");
+        JSONArray fin = obj.getJSONObject(fin_type).getJSONArray(finishData.partId + "");
+        JSONArray backward = new JSONArray();
+        JSONArray forward = new JSONArray();
+        double back_dist = 0, forw_dist = 0;
+        JSONObject p_ob = new JSONObject(); // previos point
+
+        if (currentData.partId == 0) {
+            for (int i = currentData.pointId; i < cur.length(); i++) {
+                returnArray.put(cur.getJSONObject(i));
+            }
+            for (int i = fin.length() - 1; i >= finishData.pointId; i--) {
+                returnArray.put(fin.getJSONObject(i));
+            }
+        } else if (currentData.partId == obj.getInt("parts") - 1) {
+            for (int i = currentData.pointId; i >= 0; i--) {
+                returnArray.put(cur.getJSONObject(i));
+            }
+            for (int i = 0; i <= finishData.pointId; i++) {
+                returnArray.put(fin.getJSONObject(i));
+            }
+        } else {
+            for (int i = currentData.pointId; i >= 0; i--) {
+                JSONObject ob = cur.getJSONObject(i);
+                backward.put(ob);
+                if (i != currentData.pointId) {
+                    back_dist = back_dist + geoMethods.distance(new LatLng(ob.getDouble("lat"), ob.getDouble("lng")), new LatLng(p_ob.getDouble("lat"), p_ob.getDouble("lng")));
+                } else {
+                    p_ob = ob;
+                }
+            }
+            for (int i = 0; i <= finishData.pointId; i++) {
+                JSONObject ob = fin.getJSONObject(i);
+                backward.put(ob);
+                if (i != 0) {
+                    back_dist = back_dist + geoMethods.distance(new LatLng(ob.getDouble("lat"), ob.getDouble("lng")), new LatLng(p_ob.getDouble("lat"), p_ob.getDouble("lng")));
+                } else {
+                    p_ob = ob;
+                }
+            }
+
+            for (int i = currentData.pointId; i < cur.length(); i++) {
+                JSONObject ob = cur.getJSONObject(i);
+                forward.put(ob);
+                if (i != currentData.pointId) {
+                    forw_dist = forw_dist + geoMethods.distance(new LatLng(ob.getDouble("lat"), ob.getDouble("lng")), new LatLng(p_ob.getDouble("lat"), p_ob.getDouble("lng")));
+                } else {
+                    p_ob = ob;
+                }
+            }
+            for (int i = fin.length() - 1; i >= finishData.pointId; i--) {
+                JSONObject ob = fin.getJSONObject(i);
+                forward.put(ob);
+                if (i != fin.length() - 1) {
+                    forw_dist = forw_dist + geoMethods.distance(new LatLng(ob.getDouble("lat"), ob.getDouble("lng")), new LatLng(p_ob.getDouble("lat"), p_ob.getDouble("lng")));
+                } else {
+                    p_ob = ob;
+                }
+            }
+
+            if (back_dist < forw_dist) {
+                for (int i = 0; i < backward.length(); i++) {
+                    returnArray.put(backward.getJSONObject(i));
+                }
+            } else {
+                for (int i = 0; i < forward.length(); i++) {
+                    returnArray.put(forward.getJSONObject(i));
+                }
+            }
+        }
+    }
+
+    private void pointDiffPartBackward(JSONObject obj, String cur_type, String fin_type) throws JSONException {
+        ArrayList<JSONArray> list = new ArrayList<>();
+        list.add(obj.getJSONObject(cur_type).getJSONArray(currentData.partId + ""));
+        if ((currentData.partId - finishData.partId) > 1) {
+            for (int i = currentData.partId - 1; i > finishData.partId; i--) {
+                list.add(obj.getJSONObject("main").getJSONArray(i + ""));
+            }
+        }
+
+        list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+        for (int i = 0; i < list.size(); i++) {
+            JSONArray ar = list.get(i);
+            if (i == 0) {
+                for (int j = currentData.pointId; j >= 0; j--) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            } else if (i == list.size() - 1) {
+                for (int j = ar.length() - 1; j >= finishData.pointId; j--) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            } else {
+                for (int j = ar.length() - 1; j >= 0; j--) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            }
+        }
+    }
+
+    private void pointDiffPartForward(JSONObject obj, String cur_type, String fin_type) throws JSONException {
+        ArrayList<JSONArray> list = new ArrayList<>();
+        list.add(obj.getJSONObject(cur_type).getJSONArray(currentData.partId + ""));
+        if ((finishData.partId - currentData.partId) > 1) {
+            for (int i = (currentData.partId + 1); i < finishData.partId; i++) {
+                list.add(obj.getJSONObject("main").getJSONArray(i + ""));
+            }
+        }
+        list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+        for (int i = 0; i < list.size(); i++) {
+            JSONArray ar = list.get(i);
+            if (i == 0) {
+                for (int j = currentData.pointId; j < ar.length(); j++) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            } else if (i == list.size() - 1) {
+                for (int j = 0; j <= finishData.pointId; j++) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            } else {
+                for (int j = 0; j < ar.length(); j++) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            }
+        }
+    }
+
+    private boolean stageHasAltPart(JSONObject obj, int index) throws JSONException {
+        boolean hasAlt = false;
+        boolean hasPart = false;
+        hasAlt = obj.has("alt");
+        if (hasAlt) {
+            hasPart = obj.getJSONObject("alt").has(index+"");
+        }
+        return hasPart;
+    }
+
+    private void pointDiffStageBackward(String cur_type, String fin_type) throws JSONException {
+        ArrayList<JSONArray> list = new ArrayList<>();
+        boolean diff_alts = false;
+        for (int i = currentData.stageId; i >= finishData.stageId; i--) {
+            JSONObject obj = jfh.parseJSONObj("json/stage" + i + ".json");
+            if (i == currentData.stageId) {
+                list.add(obj.getJSONObject(cur_type).getJSONArray(currentData.partId + ""));
+                if (currentData.partId != 0) {
+                    for (int j = currentData.partId - 1; j >= 0; j--) {
+                        list.add(obj.getJSONObject("main").getJSONArray(j + ""));
+                    }
+                }
+            } else if (i == finishData.stageId) {
+                if (obj.getInt("parts") > 1) {
+                    if (finishData.partId != (obj.getInt("parts") - 1)) {
+                        for (int j = obj.getInt("parts") - 1; j > finishData.partId; j--) {
+                            if (j == (obj.getInt("parts") - 1) && currentData.alt && (i == (currentData.stageId - 1)) && stageHasAltPart(obj, j)) {
+                                list.add(obj.getJSONObject("alt").getJSONArray(j + ""));
+                            } else {
+                                list.add(obj.getJSONObject("main").getJSONArray(j + ""));
+                            }
+                        }
+                        list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                    } else {
+                        if ((!cur_type.equals(fin_type) && (i == (currentData.stageId - 1)))) {
+                            list.add(obj.getJSONObject(cur_type).getJSONArray(finishData.partId + ""));
+                            list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                            diff_alts = true;
+                        } else {
+                            list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                        }
+                    }
+
+                } else {
+                    list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                }
+            } else {
+                for (int j = obj.getInt("parts") - 1; j >= 0; j--) {
+                    if (j == (obj.getInt("parts") - 1) && currentData.alt && (i == (currentData.stageId - 1)) && stageHasAltPart(obj, j)) {
+                        list.add(obj.getJSONObject("alt").getJSONArray(j + ""));
+                    } else {
+                        list.add(obj.getJSONObject("main").getJSONArray(j + ""));
+                    }
+                }
+
+            }
+        }
+        for (int i = 0; i < list.size(); i++) {
+            JSONArray ar = list.get(i);
+            if (i == 0) {
+                for (int j = currentData.pointId; j >= 0; j--) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            } else if (i == list.size() - 1) {
+                if (diff_alts) {
+                    for (int j = 0; j <= finishData.pointId; j++) {
+                        returnArray.put(ar.getJSONObject(j));
+                    }
+                } else {
+                    for (int j = ar.length() - 1; j >= finishData.pointId; j--) {
+                        returnArray.put(ar.getJSONObject(j));
+                    }
+                }
+            } else {
+                for (int j = ar.length() - 1; j >= 0; j--) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            }
+        }
+    }
+
+    private void pointDiffStageForward(String cur_type, String fin_type) throws JSONException {
+        ArrayList<JSONArray> list = new ArrayList<>();
+        boolean diff_alts = false;
+        for (int i = currentData.stageId; i <= finishData.stageId; i++) {
+            JSONObject obj = jfh.parseJSONObj("json/stage" + i + ".json");
+            if (i == currentData.stageId) {
+                list.add(obj.getJSONObject(cur_type).getJSONArray(currentData.partId + ""));
+                if (currentData.partId != (obj.getInt("parts") - 1)) {
+                    for (int j = currentData.partId + 1; j < obj.getInt("parts"); j++) {
+                        list.add(obj.getJSONObject("main").getJSONArray(j + ""));
+                    }
+                }
+            } else if (i == finishData.stageId) {
+                if (obj.getInt("parts") > 1) {
+                    if (finishData.partId != 0) {
+                        for (int j = 0; j < finishData.partId; j++) {
+                            if (j == 0 && currentData.alt && (i == (currentData.stageId + 1)) && stageHasAltPart(obj, j)) {
+                                list.add(obj.getJSONObject("alt").getJSONArray(j + ""));
+                            } else {
+                                list.add(obj.getJSONObject("main").getJSONArray(j + ""));
+                            }
+                        }
+                        list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                    } else {
+                        if ((!cur_type.equals(fin_type) && (i == (currentData.stageId + 1)))) {
+                            list.add(obj.getJSONObject(cur_type).getJSONArray(finishData.partId + ""));
+                            list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                            diff_alts = true;
+                        } else {
+                            list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                        }
+                    }
+                } else {
+                    list.add(obj.getJSONObject(fin_type).getJSONArray(finishData.partId + ""));
+                }
+            } else {
+                for (int j = 0; j < obj.getInt("parts"); j++) {
+                    if (j == 0 && currentData.alt && (i == (currentData.stageId + 1)) && stageHasAltPart(obj, j)) {
+                        list.add(obj.getJSONObject("alt").getJSONArray(j + ""));
+                    } else {
+                        list.add(obj.getJSONObject("main").getJSONArray(j + ""));
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < list.size(); i++) {
+            JSONArray ar = list.get(i);
+            if (i == 0) {
+                for (int j = currentData.pointId; j < ar.length(); j++) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            } else if (i == list.size() - 1) {
+                if (diff_alts) {
+                    for (int j = ar.length() - 1; j >= finishData.pointId; j--) {
+                        returnArray.put(ar.getJSONObject(j));
+                    }
+                } else {
+                    for (int j = 0; j <= finishData.pointId; j++) {
+                        returnArray.put(ar.getJSONObject(j));
+                    }
+                }
+            } else {
+                for (int j = 0; j < ar.length(); j++) {
+                    returnArray.put(ar.getJSONObject(j));
+                }
+            }
+        }
+    }
 
     // *** OSM Functions ***
 
@@ -210,9 +544,9 @@ public class DrawingMethods implements AppConstants {
         double distFromCurrToFin = 0;
         if (currentData != null) {
 //            if (areaLimitSpain.contains(new GeoPoint(current.getLatitude(), current.getLongitude())))
-                waypoints.add(new GeoPoint(current.getLatitude(), current.getLongitude()));
+            waypoints.add(new GeoPoint(current.getLatitude(), current.getLongitude()));
         }
-        if (geoArr.length() > 0 ) {
+        if (geoArr.length() > 0) {
             for (int h = 0; h < geoArr.length(); h++) {
                 geopoint = geoArr.getJSONObject(h);
                 if (h == 0) {
@@ -237,7 +571,7 @@ public class DrawingMethods implements AppConstants {
         routeOverlay.setPoints(waypoints);
         List<Overlay> x = mapView.getOverlays();
         int i = 0;
-        for (Overlay item: x) {
+        for (Overlay item : x) {
             if (item instanceof Polyline) {
                 mapView.getOverlayManager().remove(i);
             }
@@ -249,33 +583,75 @@ public class DrawingMethods implements AppConstants {
         return distFromCurrToFin;
     }
 
-    public void drawAllRoute(Integer stage) throws JSONException {
+    public void drawAllRoute(int stage) throws JSONException {
         JSONObject fileObj, geo;
         JSONArray geoArr;
         ArrayList<GeoPoint> waypointsStart = new ArrayList<>();
         ArrayList<GeoPoint> waypointsHighlight = new ArrayList<>();
         ArrayList<GeoPoint> waypointsFinish = new ArrayList<>();
+        ArrayList<GeoPoint> waypointsAlt = new ArrayList<>();
+
         GeoPoint newPoint;
         Polyline routeOverlayStart = new Polyline(context);
         Polyline routeOverlayHighlight = new Polyline(context);
         Polyline routeOverlayFinish = new Polyline(context);
+
+
         boolean finish = false;
         for (int i = 1; i < 32; i++) {
             fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
-            geoArr = fileObj.getJSONArray("geo");
-            for (int h = 0; h < geoArr.length(); h++) {
-                geo = geoArr.getJSONObject(h);
-                Double lat = geo.getDouble("lat");
-                Double lng = geo.getDouble("lng");
-                newPoint = new GeoPoint(lat, lng);
-                if (stage != null && stage == i) {
-                    waypointsHighlight.add(newPoint);
-                    finish = true;
-                } else {
-                    if (finish) {
-                        waypointsFinish.add(newPoint);
+            if (fileObj.getInt("parts") > 1) {
+                for (int j = 0; j < fileObj.getInt("parts"); j++) {
+                    JSONArray ar = fileObj.getJSONObject("main").getJSONArray(j + "");
+                    for (int h = 0; h < ar.length(); h++) {
+                        geo = ar.getJSONObject(h);
+                        Double lat = geo.getDouble("lat");
+                        Double lng = geo.getDouble("lng");
+                        newPoint = new GeoPoint(lat, lng);
+                        if (stage == i) {
+                            waypointsHighlight.add(newPoint);
+                            finish = true;
+                        } else {
+                            if (finish) {
+                                waypointsFinish.add(newPoint);
+                            } else {
+                                waypointsStart.add(newPoint);
+                            }
+                        }
+                    }
+                    if (fileObj.getJSONObject("alt").has(j + "")) {
+                        waypointsAlt = new ArrayList<>();
+                        JSONArray ar_alt = fileObj.getJSONObject("alt").getJSONArray(j + "");
+                        for (int h = 0; h < ar_alt.length(); h++) {
+                            geo = ar_alt.getJSONObject(h);
+                            Double lat = geo.getDouble("lat");
+                            Double lng = geo.getDouble("lng");
+                            newPoint = new GeoPoint(lat, lng);
+                            waypointsAlt.add(newPoint);
+                        }
+                        Polyline routeOverlayAlt = new Polyline(context);
+                        routeOverlayAlt.setWidth(3.0f);
+                        routeOverlayAlt.setColor(Color.rgb(255, 255, 0));
+                        routeOverlayAlt.setPoints(waypointsAlt);
+                        mapView.getOverlays().add(routeOverlayAlt);
+                    }
+                }
+            } else {
+                JSONArray ar = fileObj.getJSONObject("main").getJSONArray("0");
+                for (int h = 0; h < ar.length(); h++) {
+                    geo = ar.getJSONObject(h);
+                    Double lat = geo.getDouble("lat");
+                    Double lng = geo.getDouble("lng");
+                    newPoint = new GeoPoint(lat, lng);
+                    if (stage == i) {
+                        waypointsHighlight.add(newPoint);
+                        finish = true;
                     } else {
-                        waypointsStart.add(newPoint);
+                        if (finish) {
+                            waypointsFinish.add(newPoint);
+                        } else {
+                            waypointsStart.add(newPoint);
+                        }
                     }
                 }
             }
@@ -388,12 +764,13 @@ public class DrawingMethods implements AppConstants {
         return markers;
     }
 
-    public ArrayList<PolylineOptions> drawAllRouteGMAP(Integer stage) throws JSONException {
+    public ArrayList<PolylineOptions> drawAllRouteGMAP(int stage) throws JSONException {
         PolylineOptions rectOptionsStart = new PolylineOptions();
         PolylineOptions rectOptionsFinish = new PolylineOptions();
         PolylineOptions rectOptionsHighlight = new PolylineOptions();
+        PolylineOptions rectOptionsAlt = new PolylineOptions();
+        ArrayList<PolylineOptions> returnList = new ArrayList<PolylineOptions>();
         boolean finish = false;
-
 
         //stage == 0 => all route w/o highlight
         JSONObject fileObj, geo;
@@ -401,21 +778,55 @@ public class DrawingMethods implements AppConstants {
         LatLng newPoint;
         for (int i = 1; i < 32; i++) {
             fileObj = jfh.parseJSONObj("json/stage" + i + ".json");
-            geoArr = fileObj.getJSONArray("geo");
-
-            for (int h = 0; h < geoArr.length(); h++) {
-                geo = geoArr.getJSONObject(h);
-                Double lat = geo.getDouble("lat");
-                Double lng = geo.getDouble("lng");
-                newPoint = new LatLng(lat, lng);
-                if (stage != null && i == stage) {
-                    rectOptionsHighlight.add(newPoint);
-                    finish = true;
-                } else {
-                    if (finish) {
-                        rectOptionsFinish.add(newPoint);
+            if (fileObj.getInt("parts") > 1) {
+                for (int j = 0; j < fileObj.getInt("parts"); j++) {
+                    JSONArray ar = fileObj.getJSONObject("main").getJSONArray(j + "");
+                    for (int h = 0; h < ar.length(); h++) {
+                        geo = ar.getJSONObject(h);
+                        Double lat = geo.getDouble("lat");
+                        Double lng = geo.getDouble("lng");
+                        newPoint = new LatLng(lat, lng);
+                        if (i == stage) {
+                            rectOptionsHighlight.add(newPoint);
+                            finish = true;
+                        } else {
+                            if (finish) {
+                                rectOptionsFinish.add(newPoint);
+                            } else {
+                                rectOptionsStart.add(newPoint);
+                            }
+                        }
+                    }
+                    if (fileObj.getJSONObject("alt").has(j + "")) {
+                        rectOptionsAlt = new PolylineOptions();
+                        JSONArray ar_alt = fileObj.getJSONObject("alt").getJSONArray(j + "");
+                        for (int h = 0; h < ar_alt.length(); h++) {
+                            geo = ar_alt.getJSONObject(h);
+                            Double lat = geo.getDouble("lat");
+                            Double lng = geo.getDouble("lng");
+                            newPoint = new LatLng(lat, lng);
+                            rectOptionsAlt.add(newPoint);
+                        }
+                        rectOptionsAlt.color(Color.argb(200, 255, 255, 0)).width(5).geodesic(true);
+                        returnList.add(rectOptionsAlt);
+                    }
+                }
+            } else {
+                JSONArray ar = fileObj.getJSONObject("main").getJSONArray("0");
+                for (int h = 0; h < ar.length(); h++) {
+                    geo = ar.getJSONObject(h);
+                    Double lat = geo.getDouble("lat");
+                    Double lng = geo.getDouble("lng");
+                    newPoint = new LatLng(lat, lng);
+                    if (i == stage) {
+                        rectOptionsHighlight.add(newPoint);
+                        finish = true;
                     } else {
-                        rectOptionsStart.add(newPoint);
+                        if (finish) {
+                            rectOptionsFinish.add(newPoint);
+                        } else {
+                            rectOptionsStart.add(newPoint);
+                        }
                     }
                 }
             }
@@ -423,7 +834,6 @@ public class DrawingMethods implements AppConstants {
         rectOptionsStart.color(Color.argb(200, 0, 150, 136)).width(6).geodesic(true);
         rectOptionsFinish.color(Color.argb(200, 0, 150, 136)).width(6).geodesic(true);
         rectOptionsHighlight.color(Color.argb(255, 244, 68, 68)).width(6).geodesic(true);
-        ArrayList<PolylineOptions> returnList = new ArrayList<PolylineOptions>();
         returnList.add(rectOptionsStart);
         returnList.add(rectOptionsHighlight);
         returnList.add(rectOptionsFinish);
@@ -439,9 +849,9 @@ public class DrawingMethods implements AppConstants {
         double distFromCurrToFin = 0;
         if (currentData != null) {
 //            if (areaLimitSpainGMap.contains(new LatLng(current.getLatitude(), current.getLongitude())))
-                rectOptions.add(new LatLng(current.getLatitude(), current.getLongitude()));
+            rectOptions.add(new LatLng(current.getLatitude(), current.getLongitude()));
         }
-        if(geoArr.length() > 0) {
+        if (geoArr.length() > 0) {
             for (int h = 0; h < geoArr.length(); h++) {
                 geopoint = geoArr.getJSONObject(h);
                 if (h == 0) {

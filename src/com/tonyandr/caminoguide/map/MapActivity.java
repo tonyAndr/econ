@@ -1,12 +1,17 @@
 // Created by plusminus on 00:23:14 - 03.10.2008
 package com.tonyandr.caminoguide.map;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -60,7 +65,6 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-
         NavigationDrawerLayout drawerFragment = (NavigationDrawerLayout) getSupportFragmentManager().findFragmentById(R.id.fragment_nav_drawer);
         drawerFragment.setUp(R.id.fragment_nav_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), toolbar);
 
@@ -79,6 +83,35 @@ public class MapActivity extends ActionBarActivity implements SharedPreferences.
                 GMapFragment mapFragment = GMapFragment.newInstance();
                 fm.beginTransaction().add(R.id.map_container, mapFragment, GMS_FRAGMENT_TAG).commit();
             }
+        }
+
+        checkGPS();
+    }
+
+    private void checkGPS() {
+        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            // Build the alert dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Location Services disabled");
+            builder.setMessage("Please enable Location Services and GPS");
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    // Show location settings when the user acknowledges the alert dialog
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+            Dialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
         }
     }
 

@@ -6,7 +6,6 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -35,7 +33,6 @@ public class FragmentStageList extends Fragment implements AppConstants  {
     private SharedPreferences mPrefs;
     FragmentStageView fragmentView;
     FragmentManager fragmentManager;
-//    Communicater communicater;
     private JsonFilesHandler jfh;
     private ListView listView;
     private Parcelable mListState;
@@ -85,7 +82,6 @@ public class FragmentStageList extends Fragment implements AppConstants  {
 
         fillListView();
         if (savedInstanceState != null) {
-//            Toast.makeText(getActivity(), "restored", Toast.LENGTH_SHORT).show();
             listView.setSelectionFromTop(savedInstanceState.getInt("listIndex"), savedInstanceState.getInt("listTop"));
         }
 
@@ -93,7 +89,6 @@ public class FragmentStageList extends Fragment implements AppConstants  {
         currentStage.execute();
         fragmentManager = getFragmentManager();
         fragmentView = new FragmentStageView();
-//        this.setCommunicater(communicater);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -102,7 +97,6 @@ public class FragmentStageList extends Fragment implements AppConstants  {
                 TextView ft = (TextView) view.findViewById(R.id.tv_from_to);
                 int stageId = position+1;
                 String fromto = ft.getText().toString();
-//                communicater.respond(stageId, fromto);
                 final SharedPreferences.Editor edit = mPrefs.edit();
                 edit.putInt(PREFS_STAGELIST_STAGEID,stageId);
                 edit.putString(PREFS_STAGELIST_FROMTO, fromto);
@@ -128,13 +122,6 @@ public class FragmentStageList extends Fragment implements AppConstants  {
 
         outState.putInt("listIndex", index);
         outState.putInt("listTop", top);
-    }
-
-    private void markCurrentStage(int stage) {
-        View v = listView.getChildAt(stage-1);
-        v.setBackgroundColor(Color.rgb(244,68,68));
-        ((TextView)((ViewGroup)v).getChildAt(1)).setTextColor(Color.WHITE);
-        ((ImageView)((ViewGroup)v).getChildAt(2)).setImageResource(R.drawable.list_triangle_white);
     }
 
     class CurrentStage extends AsyncTask<Void, Void, Void> {
@@ -170,61 +157,12 @@ public class FragmentStageList extends Fragment implements AppConstants  {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-//            markCurrentStage(stage);
             if (stage != 0) {
                 adapter.getItem(stage-1).current = true;
                 adapter.notifyDataSetChanged();
             }
         }
     }
-
-
-
-//    public void setCommunicater(Communicater communicater) {
-//        this.communicater = communicater;
-//    }
-//
-//    public interface Communicater {
-//        public void respond(int index, String title);
-//    }
-
-
-//    class MyTask extends AsyncTask<Void, StageListItem, Void> {
-//        public MyTask() {
-//
-//        }
-//        private StagesAdapter adapter;
-//        private String[] stageNames = getResources().getStringArray(R.array.stage_names);
-//        @Override
-//        protected void onPreExecute() {
-//             adapter = (StagesAdapter) listView.getAdapter();
-//        }
-//
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//            StageListItem newStage;
-//            int i=1;
-//            for (String item : stageNames) {
-//
-//                newStage = new StageListItem(i, item);
-//                publishProgress(newStage);
-//                i++;
-//            }
-//
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onProgressUpdate(StageListItem... values) {
-//                adapter.add(values[0]);
-//
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Void aVoid) {
-//            super.onPostExecute(aVoid);
-//        }
-//    }
 
     private void fillListView() {
         String[] stageNames = getResources().getStringArray(R.array.stage_names);

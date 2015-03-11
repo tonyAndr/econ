@@ -80,11 +80,12 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
     public static List<DrawRecycleInformation> getData() {
         //load only static data inside a drawer
         List<DrawRecycleInformation> data = new ArrayList<>();
-        int icon = R.drawable.list_circle;
+//        int icon = R.drawable.list_circle;
         String[] titles = {"Map", "Stages", "Settings", "Feedback", "About"};
+        int[] icons = {R.drawable.ic_nav_map, R.drawable.ic_nav_stages, R.drawable.ic_nav_settings, R.drawable.ic_nav_feedback, R.drawable.ic_nav_about};
         for (int i = 0; i < titles.length; i++) {
             DrawRecycleInformation current = new DrawRecycleInformation();
-            current.iconId = icon;
+            current.iconId = icons[i];
             current.title = titles[i];
             data.add(current);
         }

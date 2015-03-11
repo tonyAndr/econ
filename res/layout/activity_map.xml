@@ -82,7 +82,7 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="10dp"
                 android:background="#ffffffff"
-                android:text="TEST TIME"
+                android:text=""
                 android:textSize="10sp" />
 
             <TextView
@@ -95,7 +95,7 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="5dp"
                 android:background="#ffffffff"
-                android:text="TEST LAT"
+                android:text=""
                 android:textSize="10sp" />
 
             <TextView
@@ -108,7 +108,7 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="5dp"
                 android:background="#ffffffff"
-                android:text="TEST LON"
+                android:text=""
                 android:textSize="10sp" />
             <include
                 android:id="@+id/progress_drawing_id"

@@ -18,8 +18,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -647,36 +645,36 @@ public class OSMFragment extends Fragment implements AppConstants {
         super.onDestroy();
         finishAllProcesses();
     }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // Put overlay items first
-        mMapView.getOverlayManager().onCreateOptionsMenu(menu, MENU_LAST_ID, mMapView);
-
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(final Menu pMenu) {
-        mMapView.getOverlayManager().onPrepareOptionsMenu(pMenu, MENU_LAST_ID, mMapView);
-        super.onPrepareOptionsMenu(pMenu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (mMapView.getOverlayManager().onOptionsItemSelected(item, MENU_LAST_ID, mMapView))
-            return true;
-
-        switch (item.getItemId()) {
-            case MENU_ABOUT:
-                getActivity().showDialog(DIALOG_ABOUT_ID);
-                return true;
-            case android.R.id.home:
-                getActivity().onBackPressed();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//
+//    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        // Put overlay items first
+//        mMapView.getOverlayManager().onCreateOptionsMenu(menu, MENU_LAST_ID, mMapView);
+//
+//        super.onCreateOptionsMenu(menu, inflater);
+//    }
+//
+//    @Override
+//    public void onPrepareOptionsMenu(final Menu pMenu) {
+//        mMapView.getOverlayManager().onPrepareOptionsMenu(pMenu, MENU_LAST_ID, mMapView);
+//        super.onPrepareOptionsMenu(pMenu);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        if (mMapView.getOverlayManager().onOptionsItemSelected(item, MENU_LAST_ID, mMapView))
+//            return true;
+//
+//        switch (item.getItemId()) {
+//            case MENU_ABOUT:
+//                getActivity().showDialog(DIALOG_ABOUT_ID);
+//                return true;
+//            case android.R.id.home:
+//                getActivity().onBackPressed();
+//                return true;
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     // GMS Block
     private void updateValuesFromBundle(Bundle savedInstanceState) {

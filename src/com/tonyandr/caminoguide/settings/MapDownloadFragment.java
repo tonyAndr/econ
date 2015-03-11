@@ -102,7 +102,7 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
         int i = 0;
         mapsUrl = null;
         if (mapList.get(position).getStatus() == LIST_ITEM_STATUS_NONE) {
-            while (mapsUrl == null && i < 33) {
+            while (mapsUrl == null && i < 31) {
 //                Log.d("Download", "Compare " + stageNames[i] + " and " + title);
                 if (stageNames[i].equals(title)) {
                     int stage_id = i + 1;

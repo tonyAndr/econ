@@ -55,6 +55,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     private TextView textView;
     private int mAlberguesArrayLength;
     private DBControllerAdapter dbControllerAdapter;
+    private SharedPreferences mPrefs;
 //    private JSONArray albergues;
 //    private JSONArray localities;
 
@@ -79,6 +80,8 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        mPrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        nullLocation();
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar2);
         circleProgressBar = (ProgressBar) findViewById(R.id.progressBar3);
@@ -93,7 +96,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
         IntentFilter filter = new IntentFilter("DBUpdateService");
         registerReceiver(br, filter);
 
-        mUserLearnedApp = Boolean.valueOf(readFromPreferences(this, KEY_USER_LEARNED_APP, "false"));
+        mUserLearnedApp = Boolean.valueOf(readFromPreferences(KEY_USER_LEARNED_APP, "false"));
         if (savedInstanceState != null) {
             mFromSavedInstanceState = true;
         }
@@ -101,7 +104,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
             Log.d("dbservice", "First start");
             if (!mUserLearnedApp) {
                 mUserLearnedApp = true;
-                saveToPreferences(this, KEY_USER_LEARNED_APP, mUserLearnedApp + "");
+                saveToPreferences(KEY_USER_LEARNED_APP, mUserLearnedApp + "");
             }
             // getfromfile
             String alb_path = "json/albergues.json";
@@ -139,7 +142,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                         @Override
                         public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                            Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+                            Log.e(DEBUGTAG, "Feedback send Throwable: " + throwable.toString());
                             Log.e(DEBUGTAG, "Response: " + responseString);
 //                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
                         }
@@ -164,14 +167,14 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
                         boolean updated = false;
                         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         try {
-                            mLastDBUpdate = df.parse(readFromPreferences(SplashActivity.this, "db_update_date", "2010-02-13 15:48:02"));
+                            mLastDBUpdate = df.parse(readFromPreferences("db_update_date", "2010-02-13 15:48:02"));
                             for (int i = 0; i < response.length(); i++) {
                                 if (df.parse(response.getString(i)).after(mLastDBUpdate)) {
                                     updated = true;
                                     mLastDBUpdate = df.parse(response.getString(i));
                                 }
                             }
-                            saveToPreferences(SplashActivity.this, "db_update_date", df.format(mLastDBUpdate));
+                            saveToPreferences("db_update_date", df.format(mLastDBUpdate));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (ParseException e) {
@@ -194,7 +197,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                                         if (!mUserLearnedApp) {
                                             mUserLearnedApp = true;
-                                            saveToPreferences(SplashActivity.this, KEY_USER_LEARNED_APP, mUserLearnedApp + "");
+                                            saveToPreferences(KEY_USER_LEARNED_APP, mUserLearnedApp + "");
                                         }
                                     } catch (JSONException e) {
                                         e.printStackTrace();
@@ -221,6 +224,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                                 @Override
                                 public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                                    Log.e(DEBUGTAG, "Get alb Throwable: " + throwable.toString());
                                     startMapActivity();
                                 }
                             });
@@ -231,6 +235,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                        Log.e(DEBUGTAG, "get date Throwable: " + throwable.toString());
                         startMapActivity();
                     }
                 });
@@ -246,6 +251,15 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void nullLocation() {
+        if (mPrefs.contains("lat")) {
+            SharedPreferences.Editor editor = mPrefs.edit();
+            editor.putFloat("lat", 0);
+            editor.putFloat("lng", 0);
+            editor.commit();
+        }
     }
 
     private void startMapActivity() {
@@ -265,23 +279,14 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
         unregisterReceiver(br);
     }
 
-    public static void saveToPreferences(Context context, String preferenceName, String preferenceValue) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+    public void saveToPreferences(String preferenceName, String preferenceValue) {
+        SharedPreferences.Editor editor = mPrefs.edit();
         editor.putString(preferenceName, preferenceValue);
         editor.apply();
     }
 
-    public static String readFromPreferences(Context context, String preferenceName, String defaultValue) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-
-        if (sharedPreferences.contains("lat")) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.remove("lat").remove("lng");
-            editor.commit();
-        }
-
-        return sharedPreferences.getString(preferenceName, defaultValue);
+    public String readFromPreferences(String preferenceName, String defaultValue) {
+        return mPrefs.getString(preferenceName, defaultValue);
     }
 
     class AddAlberguesTask extends AsyncTask<Void, Void, Void> {

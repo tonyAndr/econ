@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.Location;
 import android.util.Log;
 
 import com.tonyandr.caminoguide.constants.AppConstants;
@@ -109,6 +110,25 @@ public class DBControllerAdapter implements AppConstants{
 
         db.close();
         return list;
+    }
+
+    public Integer getStageFromLocation(Location location) {
+        SQLiteDatabase db = dbController.getWritableDatabase();
+        String[] columns = {dbController.albergues.STAGE};
+        Cursor cursor;
+        cursor = db.query(dbController.albergues.TABLE_NAME, columns, dbController.albergues.LAT + " = '"+location.getLatitude()+"' AND " +dbController.albergues.LNG + " = '"+location.getLongitude()+"'", null, null, null, null);
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            int index = cursor.getColumnIndex(dbController.albergues.STAGE);
+            db.close();
+            if (cursor.isNull(index)) {
+                return 0;
+            } else {
+                return cursor.getInt(index);
+            }
+        } else {
+            return 0;
+        }
     }
 
     public JSONArray getAlbergues(int stage_id) throws JSONException {
