@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.tonyandr.caminoguide.settings.MapManagerActivity">
-    <item android:id="@+id/action_delete_fragment" android:title="@string/action_delete_fragment"
-        android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/action_download_map" android:title="@string/action_download_map"
+    <item android:id="@+id/action_download_map" android:title="Download"
+        android:icon="@drawable/download168"
         android:orderInCategory="200" app:showAsAction="ifRoom" />
 </menu>

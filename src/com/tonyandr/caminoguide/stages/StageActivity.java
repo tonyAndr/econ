@@ -4,6 +4,7 @@ package com.tonyandr.caminoguide.stages;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -26,7 +27,7 @@ public class StageActivity extends ActionBarActivity implements FragmentManager.
     public TextView geoOutTextViewLat;
     public TextView geoOutTextViewTime;
     public int backstackCount;
-
+    public Location transferMyLocation;
 
 
     @Override

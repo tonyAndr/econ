@@ -1,32 +1,23 @@
-<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
+<LinearLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="com.tonyandr.caminoguide.settings.MapManagerActivity">
-
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
         <include
-            android:id="@+id/app_bar"
-            layout="@layout/app_bar" />
-        <FrameLayout
-            android:id="@+id/mapmanager_fragment_holder_id"
+        android:id="@+id/app_bar"
+        layout="@layout/app_bar" />
+
+        <it.neokree.materialtabs.MaterialTabHost
+            android:id="@+id/materialTabHost"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/app_bar"></FrameLayout>
-    </RelativeLayout>
-
-
-    <fragment
-        android:id="@+id/fragment_nav_drawer"
-        android:name="com.tonyandr.caminoguide.NavigationDrawerLayout"
-        android:layout_width="@dimen/nav_drawer_width"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:layout="@layout/fragment_navigation_drawer_layout"
-        tools:layout="@layout/fragment_navigation_drawer_layout" />
-</android.support.v4.widget.DrawerLayout>
+            android:layout_height="48dp"
+            app:textColor="#FFFFFF"
+            app:primaryColor="@color/primaryColor"
+            app:accentColor="@color/accentColor" />
+        <android.support.v4.view.ViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        </LinearLayout>

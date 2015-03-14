@@ -9,17 +9,20 @@ import org.json.JSONObject;
 public class StageListItem {
     public Integer number;
     public String fromTo;
+    public String fromToAlt;
     public boolean current = false;
+    public boolean has_alt = false;
 
 
-    public StageListItem(Integer number, String fromTo, boolean current) {
+    public StageListItem(Integer number, String fromTo, String fromToAlt, boolean current, boolean has_alt) {
         this.number = number;
         this.fromTo = fromTo;
+        this.fromToAlt = fromToAlt;
         this.current = current;
-
+        this.has_alt = has_alt;
     }
 
-    public StageListItem(JSONObject object){
+    public StageListItem(JSONObject object) {
         try {
             this.number = object.getInt("number");
             this.fromTo = object.getString("fromTo");

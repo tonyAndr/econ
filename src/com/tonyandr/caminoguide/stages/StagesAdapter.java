@@ -51,6 +51,7 @@ public class StagesAdapter extends ArrayAdapter<StageListItem> {
         TextView tvFromTo;
         ImageView ivTriangle;
         RelativeLayout layout;
+        TextView tvFromToAlt;
     }
 
     public StagesAdapter(Context context, ArrayList<StageListItem> stages) {
@@ -70,6 +71,7 @@ public class StagesAdapter extends ArrayAdapter<StageListItem> {
 //            viewHolder.tvNumber = (TextView) convertView.findViewById(R.id.tv_number);
             viewHolder.tvStage = (TextView) convertView.findViewById(R.id.tv_stagenumber);
             viewHolder.tvFromTo = (TextView) convertView.findViewById(R.id.tv_from_to);
+            viewHolder.tvFromToAlt = (TextView) convertView.findViewById(R.id.tv_from_to_alt);
             viewHolder.ivTriangle = (ImageView) convertView.findViewById(R.id.triangleIcon);
             viewHolder.layout = (RelativeLayout) convertView.findViewById(R.id.stage_list_item_layout);
             convertView.setTag(viewHolder);
@@ -92,7 +94,12 @@ public class StagesAdapter extends ArrayAdapter<StageListItem> {
             viewHolder.tvFromTo.setTextColor(Color.WHITE);
             viewHolder.ivTriangle.setImageResource(R.drawable.list_triangle_white);
         }
-
+        if (stage.has_alt) {
+            viewHolder.tvFromToAlt.setVisibility(View.VISIBLE);
+            viewHolder.tvFromToAlt.setText("alt. "+stage.fromToAlt);
+        } else {
+            viewHolder.tvFromToAlt.setVisibility(View.GONE);
+        }
 
 
         // Return the completed view to render on screen

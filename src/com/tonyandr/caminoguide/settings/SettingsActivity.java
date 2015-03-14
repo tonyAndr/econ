@@ -1,8 +1,13 @@
 package com.tonyandr.caminoguide.settings;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v4.widget.DrawerLayout;
@@ -11,6 +16,8 @@ import android.support.v7.widget.Toolbar;
 
 import com.tonyandr.caminoguide.NavigationDrawerLayout;
 import com.tonyandr.caminoguide.R;
+
+import java.io.File;
 
 
 public class SettingsActivity extends ActionBarActivity implements FragmentManager.OnBackStackChangedListener {
@@ -86,6 +93,43 @@ public class SettingsActivity extends ActionBarActivity implements FragmentManag
                     return true;
                 }
             });
+
+            final CheckBoxPreference offline_pref = (CheckBoxPreference) findPreference("pref_key_offline_mode");
+            offline_pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    if (!(new File(Environment.getExternalStorageDirectory().getPath() + "/osmdroid/map_overview.zip")).exists()) {
+                        ((CheckBoxPreference)preference).setChecked(false);
+                        checkMaps();
+                    }
+                    return true;
+                }
+            });
+
+        }
+
+
+        private void checkMaps() {
+                // Build the alert dialog
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("Map not found");
+                builder.setMessage("Please download offline maps first");
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                builder.setPositiveButton("Download", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // Show location settings when the user acknowledges the alert dialog
+                        Intent intent = new Intent(getActivity(), MapManagerActivity.class);
+                        startActivity(intent);
+                    }
+                });
+                Dialog alertDialog = builder.create();
+                alertDialog.setCanceledOnTouchOutside(false);
+                alertDialog.show();
         }
     }
 

@@ -6,4 +6,5 @@ package com.tonyandr.caminoguide.utils;
 public class DrawRecycleInformation {
     public int iconId;
     public String title;
+    public boolean active = false;
 }

@@ -68,25 +68,35 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
                 if (editText.getText().length() < 10) {
                     Toast.makeText(FeedbackActivity.this, "Write minimum 10 symbols", Toast.LENGTH_SHORT).show();
                 } else {
-                    final long id = dbController.insertFeedback(editText.getText().toString(), mPrefs.getFloat("lat", 0), mPrefs.getFloat("lng", 0), 0);
+                    double lat=0, lng=0;
+                    if (mPrefs != null) {
+                        String[] loc_string = mPrefs.getString("location-string", "").split(",");
+                        if (loc_string.length > 1) {
+                            lat = Double.parseDouble(loc_string[0]);
+                            lng = Double.parseDouble(loc_string[1]);
+                        }
+                    }
                     if (isNetworkAvailable()) {
                         sendSavedFeedback();
-                        RequestParams requestParams = new RequestParams();
+                        final RequestParams requestParams = new RequestParams();
                         requestParams.add("text", editText.getText().toString());
-                        requestParams.add("lat", ""+mPrefs.getFloat("lat", 0));
-                        requestParams.add("lng", ""+mPrefs.getFloat("lng", 0));
+                        requestParams.add("lat", ""+lat);
+                        requestParams.add("lng", ""+lng);
+                        final double f_lat = lat, f_lng = lng;
                         HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
                             @Override
                             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                                 Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
                                 Log.e(DEBUGTAG, "Response: " + responseString);
+                                dbController.insertFeedback(editText.getText().toString(), f_lat, f_lng, 0);
                                 Toast.makeText(FeedbackActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                                 if (responseString.equals("OK")) {
-                                    dbController.updateFeedback(id, 1);
+//                                    dbController.updateFeedback(id, 1);
+                                    dbController.insertFeedback(editText.getText().toString(), f_lat, f_lng, 1);
 //                                Toast.makeText(FeedbackActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
                                     successLayout.setVisibility(View.VISIBLE);
                                 } else {
@@ -95,6 +105,7 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
                             }
                         });
                     } else {
+                        dbController.insertFeedback(editText.getText().toString(), lat, lng, 0);
                         Toast.makeText(FeedbackActivity.this, "No connection, message saved", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -120,37 +131,40 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
     private void sendSavedFeedback() {
         ArrayList<FeedbackObject> feedbackObjects = new ArrayList<>();
         feedbackObjects = dbController.getSavedFeedback(FEEDBACK_STATUS_WAIT);
-        for (FeedbackObject item:feedbackObjects) {
-            RequestParams requestParams = new RequestParams();
-            requestParams.add("text", item.text);
-            requestParams.add("lat", ""+item.lat);
-            requestParams.add("lng", ""+item.lng);
-            final long id = item.id;
-            HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
-                private long _id;
-                @Override
-                public void onStart() {
-                    _id = id;
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                    Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
-                    Log.e(DEBUGTAG, "Response: " + responseString);
-//                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                    if (responseString.equals("OK")) {
-                        dbController.updateFeedback(_id, 1);
-//                                Toast.makeText(SplashActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
-                        Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
-                    } else {
-                        Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+        if (feedbackObjects.size() > 0) {
+            for (FeedbackObject item:feedbackObjects) {
+                RequestParams requestParams = new RequestParams();
+                requestParams.add("text", item.text);
+                requestParams.add("lat", ""+item.lat);
+                requestParams.add("lng", ""+item.lng);
+                final long id = item.id;
+                HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
+                    private long _id;
+                    @Override
+                    public void onStart() {
+                        _id = id;
                     }
-                }
-            });
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                        Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+                        Log.e(DEBUGTAG, "Response: " + responseString);
+//                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                        if (responseString.equals("OK")) {
+                            dbController.updateFeedback(_id, 1);
+//                                Toast.makeText(SplashActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
+                            Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
+                        } else {
+                            Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+                        }
+                    }
+                });
+            }
         }
+
     }
 }

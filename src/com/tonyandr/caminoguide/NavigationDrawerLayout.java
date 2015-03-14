@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.tonyandr.caminoguide.constants.AppConstants;
+import com.tonyandr.caminoguide.feedback.AboutActivity;
 import com.tonyandr.caminoguide.feedback.FeedbackActivity;
 import com.tonyandr.caminoguide.map.MapActivity;
 import com.tonyandr.caminoguide.settings.SettingsActivity;
@@ -37,7 +38,7 @@ import java.util.List;
 public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapter.ClickListener, AppConstants{
 
     private RecyclerView recyclerView;
-    private ActionBarDrawerToggle mDrawerToggle;
+    public ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private boolean mUserLearnedDrawer;
     private boolean mFromSavedInstanceState;
@@ -77,16 +78,30 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         return layout;
     }
-    public static List<DrawRecycleInformation> getData() {
+    public List<DrawRecycleInformation> getData() {
         //load only static data inside a drawer
         List<DrawRecycleInformation> data = new ArrayList<>();
 //        int icon = R.drawable.list_circle;
         String[] titles = {"Map", "Stages", "Settings", "Feedback", "About"};
         int[] icons = {R.drawable.ic_nav_map, R.drawable.ic_nav_stages, R.drawable.ic_nav_settings, R.drawable.ic_nav_feedback, R.drawable.ic_nav_about};
+        int active_id = 0;
+
+        if (getActivity() instanceof MapActivity)
+            active_id = 0;
+        if (getActivity() instanceof StageActivity)
+            active_id = 1;
+        if (getActivity() instanceof SettingsActivity)
+            active_id = 2;
+        if (getActivity() instanceof FeedbackActivity)
+            active_id = 3;
+//        if (getActivity() instanceof )
+
         for (int i = 0; i < titles.length; i++) {
             DrawRecycleInformation current = new DrawRecycleInformation();
             current.iconId = icons[i];
             current.title = titles[i];
+            if (i == active_id)
+                current.active = true;
             data.add(current);
         }
         return data;
@@ -164,6 +179,10 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
             case 3:
 //                Log.i("something", "do 3");
                 startActivity(new Intent(getActivity(), FeedbackActivity.class));
+                break;
+            case 4:
+//                Log.i("something", "do 3");
+                startActivity(new Intent(getActivity(), AboutActivity.class));
                 break;
             default:
                 Log.i("something", "do def");

@@ -5,11 +5,13 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +33,7 @@ import com.tonyandr.caminoguide.R;
 import com.tonyandr.caminoguide.constants.AppConstants;
 import com.tonyandr.caminoguide.map.GMapFragment;
 import com.tonyandr.caminoguide.map.OSMFragment;
+import com.tonyandr.caminoguide.settings.MapManagerActivity;
 import com.tonyandr.caminoguide.utils.DBControllerAdapter;
 import com.tonyandr.caminoguide.utils.GeoMethods;
 import com.tonyandr.caminoguide.utils.JsonFilesHandler;
@@ -40,6 +43,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,7 +168,18 @@ public class FragmentStageView extends Fragment implements AppConstants {
 
             }
         });
-
+        ImageButton btnDownload = (ImageButton) getActivity().findViewById(R.id.iv_dload_map);
+        if ((new File(Environment.getExternalStorageDirectory().getPath() + "/osmdroid/stage"+stageId+".zip")).exists()){
+            btnDownload.setVisibility(View.GONE);
+        } else {
+            btnDownload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), MapManagerActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
         ImageButton btnGlobe = (ImageButton) getActivity().findViewById(R.id.iv_globe);
         btnGlobe.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -371,15 +386,18 @@ public class FragmentStageView extends Fragment implements AppConstants {
 
     //    Getting last known position
     private Location getGPS() { // Position exists, if it was recieved on map activity (automatically on activity created)
-        Location gps = new Location("");
+        Location gps;
         if (mPrefs != null) {
-            gps.setLatitude(mPrefs.getFloat("lat", 0));
-            gps.setLongitude(mPrefs.getFloat("lng", 0));
-        } else {
-            gps.setLatitude(43.087573489174247);
-            gps.setLongitude(-1.24989464879036);
+            String[] loc_string = mPrefs.getString("location-string", "").split(",");
+            if (loc_string.length > 1) {
+                gps = new Location("");
+                gps.setLatitude(Double.parseDouble(loc_string[0]));
+                gps.setLongitude(Double.parseDouble(loc_string[1]));
+                gps.setTime(Long.parseLong(loc_string[2]));
+                return gps;
+            }
         }
-        return gps;
+        return null;
     }
 
     @Override
@@ -425,23 +443,43 @@ public class FragmentStageView extends Fragment implements AppConstants {
                 int parts = fileObj.getInt("parts");
                 JSONObject main = fileObj.getJSONObject("main");
                 int highlightCount = 0;
-                for (int i = 0; i < parts; i++) {
-                    JSONArray ar = main.getJSONArray(i + "");
-                    for (int j = 0; j < ar.length(); j++)  {
-                        jsonArr.put(ar.getJSONObject(j));
-                        if (onStageLocationData != null  && onStageLocationData.stageId == params[0]) {
-                            near = true;
-                            if (i <= onStageLocationData.partId) {
-                                if (i == onStageLocationData.partId && j == onStageLocationData.pointId) {
-                                    highlightCount++;
-                                    highlightId = highlightCount;
+                if (onStageLocationData != null) {
+                        JSONObject alt = fileObj.getJSONObject("alt");
+                        for (int i = 0; i < parts; i++) {
+                            JSONArray ar = new JSONArray();
+                            if (i == onStageLocationData.partId){
+                                if (onStageLocationData.alt) {
+                                    ar = alt.getJSONArray(i + "");
                                 } else {
-                                    highlightCount++;
+                                    ar = main.getJSONArray(i + "");
                                 }
+                            } else {
+                                ar = main.getJSONArray(i + "");
                             }
+                            for (int j = 0; j < ar.length(); j++)  {
+                                jsonArr.put(ar.getJSONObject(j));
+                                    if (onStageLocationData.stageId == params[0]) {
+                                        near = true;
+                                        if (i <= onStageLocationData.partId) {
+                                            if (i == onStageLocationData.partId && j == onStageLocationData.pointId) {
+                                                highlightCount++;
+                                                highlightId = highlightCount;
+                                            } else {
+                                                highlightCount++;
+                                            }
+                                        }
+                                    }
+                            }
+                        }
+                } else {
+                    for (int i = 0; i < parts; i++) {
+                        JSONArray ar = main.getJSONArray(i + "");
+                        for (int j = 0; j < ar.length(); j++)  {
+                            jsonArr.put(ar.getJSONObject(j));
                         }
                     }
                 }
+
                 JSONObject geo;
                 JSONObject prev_geopoint = new JSONObject();
                 double dist = 0;

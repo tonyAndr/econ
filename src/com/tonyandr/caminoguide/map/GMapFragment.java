@@ -38,7 +38,9 @@ import com.tonyandr.caminoguide.utils.MarkerDataObject;
 
 import org.json.JSONException;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -162,18 +164,44 @@ public class GMapFragment extends MapFragment implements AppConstants {
 
             }
         };
+
+        map.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+            @Override
+            public void onMyLocationChange(Location location) {
+                mCurrentLocation = location;
+                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date(location.getTime()));
+                updateUI();
+
+                SharedPreferences.Editor editor = mPrefs.edit();
+                editor.putString("location-string", mCurrentLocation.getLatitude() + "," + mCurrentLocation.getLongitude() + "," + mCurrentLocation.getTime());
+                editor.commit();
+//                Log.w(DEBUGTAG, mCurrentLocation.toString());
+
+                if (bundle != null && calculateDistanceTask != null && settings.getBoolean("pref_key_realtime_calculation", false)) {
+                    if (calculateDistanceTask.getStatus() == AsyncTask.Status.FINISHED) {
+                        calculateDistanceTask = new CalculateDistanceTask();
+                        calculateDistanceTask.execute();
+//                            Toast.makeText(getActivity(), "Re-calculation...", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                if (mFollowUserLocation != false) {
+                    followUser();
+                }
+            }
+        });
         followMyLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mFollowUserLocation) {
-                    mFollowUserLocation = true;
-                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking On", Toast.LENGTH_SHORT);
-                    toast.show();
-                } else {
-                    mFollowUserLocation = false;
-                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
+//                if (!mFollowUserLocation) {
+//                    mFollowUserLocation = true;
+//                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking On", Toast.LENGTH_SHORT);
+//                    toast.show();
+//                } else {
+//                    mFollowUserLocation = false;
+//                    Toast toast = Toast.makeText(getActivity(), "GPS Tracking Off", Toast.LENGTH_SHORT);
+//                    toast.show();
+//                }
                 if (mCurrentLocation != null) {
                     LatLng point = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     CameraUpdate cameraUpdate;
@@ -272,8 +300,8 @@ public class GMapFragment extends MapFragment implements AppConstants {
             Toast.makeText(getActivity(), "GPS Tracking On", Toast.LENGTH_SHORT).show();
         }
 
-        mServiceIntent = new Intent(getActivity(), GeoService.class);
-        getActivity().startService(mServiceIntent);
+//        mServiceIntent = new Intent(getActivity(), GeoService.class);
+//        getActivity().startService(mServiceIntent);
 
         try {
             drawLogic();

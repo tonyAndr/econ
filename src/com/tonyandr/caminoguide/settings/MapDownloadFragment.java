@@ -3,9 +3,6 @@ package com.tonyandr.caminoguide.settings;
 
 import android.app.ActivityManager;
 import android.app.DownloadManager;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +10,8 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,14 +34,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+//import android.app.Fragment;
+//import android.app.FragmentTransaction;
+
 /**
  * A simple {@link Fragment} subclass.
  */
 public class MapDownloadFragment extends Fragment implements AppConstants{
-    MapDownloadFragment fragmentDownload;
-    MapDeleteFragment fragmentDelete;
     FragmentManager fragmentManager;
-    MaplistAdapter dataAdapter = null;
+    public MaplistAdapter dataAdapter = null;
     private String[] stageNames;
     private List<String> mapsUrls;
     private String mapsUrl = ""; // TODO
@@ -50,7 +50,6 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
     static DownloadManager downloadManager;
     private BroadcastReceiver receiverDownloadComplete;
 //    BroadcastReceiver receiverNotificationClicked;
-//    BroadcastReceiver unzipServiceReceiver;
     static long myDownloadReference;
     private ArrayList<MaplistInfo> mapList;
     private ListView listView;
@@ -63,12 +62,15 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
     public MapDownloadFragment() {
         // Required empty public constructor
     }
+    public static MapDownloadFragment newInstance() {
+        MapDownloadFragment f = new MapDownloadFragment();
+        return f;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
         createBroadcastReceiver();
     }
 
@@ -85,7 +87,7 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
         displayListView();
         stageNames = getResources().getStringArray(R.array.stage_names);
         downloadManager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-        fragmentManager = getFragmentManager();
+        fragmentManager = getActivity().getSupportFragmentManager();
     }
 
     public long mapDownload(String title, int position) {
@@ -125,8 +127,10 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
 //        }
         if (mapsUrl != null) {
             mapList.get(position).setStatus(LIST_ITEM_STATUS_INPROGRESS);
-            (((ViewGroup) listView.getChildAt(position)).getChildAt(0)).setVisibility(View.GONE);
-            (((ViewGroup) listView.getChildAt(position)).getChildAt(1)).setVisibility(View.VISIBLE);
+            if (listView.getChildAt(position) != null) {
+                (((ViewGroup) listView.getChildAt(position)).getChildAt(0)).setVisibility(View.GONE);
+                (((ViewGroup) listView.getChildAt(position)).getChildAt(1)).setVisibility(View.VISIBLE);
+            }
             dataAdapter.notifyDataSetChanged();
 //            Log.d("Download", "Url to load: " + mapsUrl);
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(mapsUrl));
@@ -210,10 +214,18 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
                         if (((mapList.get(i)).getTitle()).equals(title)) {
                             mapList.get(i).setSelected(true);
                             mapList.get(i).setStatus(LIST_ITEM_STATUS_NONE);
-                            (((ViewGroup) listView.getChildAt(i)).getChildAt(0)).setVisibility(View.VISIBLE);
-                            (((ViewGroup) listView.getChildAt(i)).getChildAt(1)).setVisibility(View.GONE);
+                            if (listView.getChildAt(i) != null) {
+                                (((ViewGroup) listView.getChildAt(i)).getChildAt(0)).setVisibility(View.VISIBLE);
+                                (((ViewGroup) listView.getChildAt(i)).getChildAt(1)).setVisibility(View.GONE);
+                            }
                             dataAdapter.notifyDataSetChanged();
                         }
+                    }
+                }
+                for (Fragment item:fragmentManager.getFragments()) {
+                    if (item instanceof MapDeleteFragment) {
+                        ((MapDeleteFragment) item).displayListView();
+                        ((MapDeleteFragment) item).dataAdapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -223,7 +235,7 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
     }
 
 
-    private void displayListView() {
+    public void displayListView() {
 
         //Array list of countries
         mapList = new ArrayList<>();
@@ -244,7 +256,7 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
 
         //create an ArrayAdaptar from the String Array
         dataAdapter = new MaplistAdapter(getActivity(), mapList);
-        listView = (ListView) getActivity().findViewById(R.id.listView1);
+        listView = (ListView) getActivity().findViewById(R.id.lv_dload);
         // Assign adapter to ListView
         listView.setAdapter(dataAdapter);
 
@@ -275,7 +287,7 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
     @Override
     public void onResume() {
         super.onResume();
-
+        Log.w(DEBUGTAG, "Dload fr resumed");
 //        filter for notifications - only acts on notification
 //              while download busy
 //        IntentFilter filter = new IntentFilter(DownloadManager
@@ -418,16 +430,16 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
             checkButtonClick();
             return true;
         }
-        if (id == R.id.action_delete_fragment) {
-            if (fragmentManager.findFragmentByTag("MapDownloadFragment") != null) {
-                fragmentDelete = new MapDeleteFragment();
-                FragmentTransaction transaction = fragmentManager.beginTransaction();
-                transaction.replace(R.id.mapmanager_fragment_holder_id, fragmentDelete, "MapDeleteFragment");
-                transaction.addToBackStack(MapDeleteFragment.class.getName());
-                transaction.commit();
-            }
-            return true;
-        }
+//        if (id == R.id.action_delete_fragment) {
+//            if (fragmentManager.findFragmentByTag("MapDownloadFragment") != null) {
+//                fragmentDelete = new MapDeleteFragment();
+//                FragmentTransaction transaction = fragmentManager.beginTransaction();
+//                transaction.replace(R.id.mapmanager_fragment_holder_id, fragmentDelete, "MapDeleteFragment");
+//                transaction.addToBackStack(MapDeleteFragment.class.getName());
+//                transaction.commit();
+//            }
+//            return true;
+//        }
         return super.onOptionsItemSelected(item);
     }
 

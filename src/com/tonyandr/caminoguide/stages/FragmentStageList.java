@@ -29,7 +29,7 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class FragmentStageList extends Fragment implements AppConstants  {
+public class FragmentStageList extends Fragment implements AppConstants {
     private SharedPreferences mPrefs;
     FragmentStageView fragmentView;
     FragmentManager fragmentManager;
@@ -37,7 +37,8 @@ public class FragmentStageList extends Fragment implements AppConstants  {
     private ListView listView;
     private Parcelable mListState;
     private StagesAdapter adapter;
-//    private StagesAdapter adapter;
+
+    //    private StagesAdapter adapter;
     public FragmentStageList() {
         // Required empty public constructor
     }
@@ -64,7 +65,6 @@ public class FragmentStageList extends Fragment implements AppConstants  {
     public void onPause() {
         super.onPause();
     }
-
 
 
     @Override
@@ -95,10 +95,10 @@ public class FragmentStageList extends Fragment implements AppConstants  {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                TextView sn = (TextView) view.findViewById(R.id.tv_stagenumber);
                 TextView ft = (TextView) view.findViewById(R.id.tv_from_to);
-                int stageId = position+1;
+                int stageId = position + 1;
                 String fromto = ft.getText().toString();
                 final SharedPreferences.Editor edit = mPrefs.edit();
-                edit.putInt(PREFS_STAGELIST_STAGEID,stageId);
+                edit.putInt(PREFS_STAGELIST_STAGEID, stageId);
                 edit.putString(PREFS_STAGELIST_FROMTO, fromto);
                 edit.commit();
                 if (fragmentManager.findFragmentByTag("FragmentList") != null) {
@@ -128,8 +128,9 @@ public class FragmentStageList extends Fragment implements AppConstants  {
         private CurrentStage() {
 
         }
+
         private GeoMethods geoMethods;
-        private int stage;
+        private int stage = 0;
 
         @Override
         protected void onPreExecute() {
@@ -138,16 +139,18 @@ public class FragmentStageList extends Fragment implements AppConstants  {
 
         @Override
         protected Void doInBackground(Void... params) {
-            Location gps = new Location("");
-            if (mPrefs != null) {
-                gps.setLatitude(mPrefs.getFloat("lat", 0));
-                gps.setLongitude(mPrefs.getFloat("lng", 0));
-            } else {
-                gps.setLatitude(0);
-                gps.setLongitude(0);
-            }
             try {
-                stage = geoMethods.onWhichStageSimple(gps);
+                Location gps;
+                if (mPrefs != null) {
+                    String[] loc_string = mPrefs.getString("location-string", "").split(",");
+                    if (loc_string.length > 1) {
+                        gps = new Location("");
+                        gps.setLatitude(Double.parseDouble(loc_string[0]));
+                        gps.setLongitude(Double.parseDouble(loc_string[1]));
+                        gps.setTime(Long.parseLong(loc_string[2]));
+                        stage = geoMethods.onWhichStageSimple(gps);
+                    }
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -158,7 +161,7 @@ public class FragmentStageList extends Fragment implements AppConstants  {
         @Override
         protected void onPostExecute(Void aVoid) {
             if (stage != 0) {
-                adapter.getItem(stage-1).current = true;
+                adapter.getItem(stage - 1).current = true;
                 adapter.notifyDataSetChanged();
             }
         }
@@ -167,11 +170,28 @@ public class FragmentStageList extends Fragment implements AppConstants  {
     private void fillListView() {
         String[] stageNames = getResources().getStringArray(R.array.stage_names);
         adapter = (StagesAdapter) listView.getAdapter();
-        int i=1;
+        int i = 1;
         for (String item : stageNames) {
-
-            adapter.add(new StageListItem(i, item, false));
-
+            switch (item) {
+                case "Saint Jean Pied de Port - Roncesvalles":
+                    adapter.add(new StageListItem(i, item, "Valcarlos", false, true));
+                    break;
+                case "Terradillos de los Templarios - El Burgo Ranero":
+                    adapter.add(new StageListItem(i, item, "Terradillos de los Templarios - Calzadilla de los Hermanillos", false, true));
+                    break;
+                case "El Burgo Ranero - León":
+                    adapter.add(new StageListItem(i, item, "Calzadilla de los Hermanillos - León", false, true));
+                    break;
+                case "León - San Martín del Camino":
+                    adapter.add(new StageListItem(i, item, "León - Villar de Mazarife", false, true));
+                    break;
+                case "San Martín del Camino - Astorga":
+                    adapter.add(new StageListItem(i, item, "Villar de Mazarife - Astorga", false, true));
+                    break;
+                default:
+                    adapter.add(new StageListItem(i, item, "", false, false));
+                    break;
+            }
             i++;
         }
     }

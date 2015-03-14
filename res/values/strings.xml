@@ -36,12 +36,10 @@
     <string name="pref_summary_rotation">Map rotation by gestures</string>
     <string name="pref_title_locktouch">Lock accidental touching</string>
     <string name="pref_summary_locktouch">While following your location, any touch-actions will be ignored on map screen</string>
-    <string name="title_activity_test">TestActivity</string>
-    <string name="title_activity_stage">StageActivity</string>
+    <string name="title_activity_stage">Stages</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
-    <string name="title_activity_stage_portrait">StagePortraitActivity</string>
 
     <string-array name="stage_names">
         <item>Saint Jean Pied de Port - Roncesvalles</item>
@@ -77,7 +75,7 @@
         <item>Pedrouzo - Santiago de Compostela</item>
     </string-array>
 
-    <string name="title_activity_map_manager">MapManagerActivity</string>
+    <string name="title_activity_map_manager">Manage maps</string>
     <string name="action_delete">Delete maps</string>
     <string name="action_delete_fragment">Delete maps</string>
     <string name="action_download_map">Download selected</string>
@@ -95,8 +93,8 @@
     <string name="action_hide_markers">Markers</string>
     <string name="distance_to_from_start">From start:</string>
     <string name="distance_to_finish">To finish:</string>
-    <string name="title_activity_splash">SplashActivity</string>
-    <string name="title_activity_feedback">FeedbackActivity</string>
+    <string name="title_activity_splash">Camino Guide Offline</string>
+    <string name="title_activity_feedback">Feedback</string>
     <string name="notify_suggestion_text">Please, notify us about any mistakes/errors or whatever in our app. You can include you current position using checkbox below.</string>
     <string name="drawing_loading_route_text">Drawing route...</string>
     <string name="stage_activity_list_fragment_title">Stages</string>
@@ -104,5 +102,26 @@
     <string name="progress_drawing_markers">Drawing markers...</string>
     <string name="send_my_coordinates">Send my location</string>
     <string name="feedback_thank_you">Thank you!</string>
+    <string name="title_activity_about">AboutActivity</string>
+
+    <string name="about_text">
+        <b>Camino Guide Offline</b> is your personal guide on Camino Frances. You will never lose your way. You will always find a place to sleep.\n\n
+<b>Features:</b>\n
+*Offline and online maps\n
+*Show albergues on map with very accurate position\n
+*Draw camino route with alternatives\n
+*Calculate distance and draw route to selected albergue/hotel\n
+*Show your location and direction\n
+*Show stage profile and current elevation level\n
+*Show stage localities and albergues\n
+*Show your progress on stage (km done/left)\n
+*Albergues details such as phone, beds, address, type\n
+
+        \n\n\n
+        Map data © OpenStreetMap contributors\n
+        http://www.openstreetmap.org/copyright
+        \n\n
+
+    </string>
 
 </resources>

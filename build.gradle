@@ -43,10 +43,10 @@ android {
         instrumentTest.setRoot('tests')
     }
     buildTypes {
-//        release {
-//            minifyEnabled false
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-//        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
+        }
         debug {
             debuggable true
         }
@@ -60,5 +60,6 @@ dependencies {
     compile 'com.google.android.gms:play-services:6.5.87'
     compile 'com.jjoe64:graphview:4.0.0'
     compile 'com.loopj.android:android-async-http:1.4.5'
+    compile 'it.neokree:MaterialTabs:0.11'
 
 }

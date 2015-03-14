@@ -254,11 +254,11 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     }
 
     private void nullLocation() {
-        if (mPrefs.contains("lat")) {
+        if (mPrefs.contains("location-string")) {
             SharedPreferences.Editor editor = mPrefs.edit();
-            editor.putFloat("lat", 0);
-            editor.putFloat("lng", 0);
+            editor.remove("location-string");
             editor.commit();
+            Log.w(DEBUGTAG, "mPrefs Location string has been removed!");
         }
     }
 

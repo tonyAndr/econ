@@ -41,7 +41,7 @@
         android:glEsVersion="0x00020000"
         android:required="true" />
 
-    <!--<android:uses-permission android:name="android.permission.READ_PHONE_STATE" />  <uses-permission android:name="android.permission.READ_PHONE_STATE" /> -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <application
         android:configChanges="orientation|screenSize|keyboardHidden"
         android:hardwareAccelerated="true"
@@ -51,7 +51,6 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        <!-- all applications based on this code should get their own Bing key -->
 
         <uses-library
             android:name="com.google.android.maps"
@@ -96,7 +95,8 @@
         <activity
             android:name=".settings.MapManagerActivity"
             android:label="@string/title_activity_map_manager"
-            android:launchMode="singleTop" >
+            android:launchMode="singleTop"
+            android:parentActivityName=".settings.SettingsActivity" >
         </activity>
 
         <service android:name=".utils.DBUpdateService" >
@@ -108,8 +108,12 @@
 
         <activity
             android:name=".feedback.FeedbackActivity"
-            android:launchMode="singleTop"
-            android:label="@string/title_activity_feedback" >
+            android:label="@string/title_activity_feedback"
+            android:launchMode="singleTop" >
+        </activity>
+        <activity
+            android:name=".feedback.AboutActivity"
+            android:label="@string/title_activity_about" >
         </activity>
     </application>
 

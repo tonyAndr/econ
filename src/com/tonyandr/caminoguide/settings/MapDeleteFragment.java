@@ -1,11 +1,11 @@
 package com.tonyandr.caminoguide.settings;
 
 
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.tonyandr.caminoguide.R;
+import com.tonyandr.caminoguide.constants.AppConstants;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,10 +27,10 @@ import java.util.ArrayList;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MapDeleteFragment extends Fragment {
+public class MapDeleteFragment extends Fragment implements AppConstants {
     FragmentManager fragmentManager;
 
-    MaplistAdapter dataAdapter = null;
+    public MaplistAdapter dataAdapter = null;
     private String[] stageNames;
     static final String path_osmdroid = Environment.getExternalStorageDirectory().getPath() + "/osmdroid/";
     private ArrayList<MaplistInfo> mapList;
@@ -41,11 +42,17 @@ public class MapDeleteFragment extends Fragment {
     public MapDeleteFragment() {
         // Required empty public constructor
     }
+    public static MapDeleteFragment newInstance(){
+        MapDeleteFragment f = new MapDeleteFragment();
+        return f;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        Log.w(DEBUGTAG, "Delete fr created");
+
     }
 
     @Override
@@ -61,7 +68,7 @@ public class MapDeleteFragment extends Fragment {
         displayListView();
         checkButtonClick();
         stageNames = getResources().getStringArray(R.array.stage_names);
-        fragmentManager = getFragmentManager();
+        fragmentManager = getActivity().getSupportFragmentManager();
     }
 
     class DeleteTask extends AsyncTask<String, Void, String> {
@@ -76,6 +83,12 @@ public class MapDeleteFragment extends Fragment {
         @Override
         protected void onPostExecute(String aVoid) {
             deleteFromList(aVoid);
+            for (Fragment item:fragmentManager.getFragments()) {
+                if (item instanceof MapDownloadFragment) {
+                    ((MapDownloadFragment) item).displayListView();
+                    ((MapDownloadFragment) item).dataAdapter.notifyDataSetChanged();
+                }
+            }
         }
     }
 
@@ -85,8 +98,10 @@ public class MapDeleteFragment extends Fragment {
             if (maplistInfo.isSelected()) {
                 Log.d("Download", "Mapinfo Title is " + maplistInfo.getTitle());
                 mapList.get(i).setStatus(LIST_ITEM_STATUS_INPROGRESS);
-                (((ViewGroup)listView.getChildAt(i)).getChildAt(0)).setVisibility(View.GONE);
-                (((ViewGroup)listView.getChildAt(i)).getChildAt(1)).setVisibility(View.VISIBLE);
+                if (listView.getChildAt(i) != null) {
+                    (((ViewGroup)listView.getChildAt(i)).getChildAt(0)).setVisibility(View.GONE);
+                    (((ViewGroup)listView.getChildAt(i)).getChildAt(1)).setVisibility(View.VISIBLE);
+                }
                 dataAdapter.notifyDataSetChanged();
                 new DeleteTask().execute(maplistInfo.getTitle());
             }
@@ -101,6 +116,7 @@ public class MapDeleteFragment extends Fragment {
                 dataAdapter.notifyDataSetChanged();
             }
         }
+
     }
 
     private void DeleteFiles(File f) { // Delete *.zip
@@ -134,7 +150,7 @@ public class MapDeleteFragment extends Fragment {
 
     }
 
-    private void displayListView() {
+    public void displayListView() {
 
         //Array list of countries
         mapList = new ArrayList<>();
@@ -158,7 +174,7 @@ public class MapDeleteFragment extends Fragment {
 
         //create an ArrayAdaptar from the String Array
         dataAdapter = new MaplistAdapter(getActivity(), mapList);
-        listView = (ListView) getActivity().findViewById(R.id.listView1);
+        listView = (ListView) getActivity().findViewById(R.id.lv_delete);
         // Assign adapter to ListView
         listView.setAdapter(dataAdapter);
 
@@ -183,16 +199,6 @@ public class MapDeleteFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_mapfragment_delete, menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -204,10 +210,6 @@ public class MapDeleteFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_delete_map) {
             checkButtonClick();
-            return true;
-        }
-        if (id == R.id.action_download_fragment) {
-
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.tonyandr.caminoguide.R;
@@ -40,6 +41,11 @@ public class DrawRecycleAdapter extends RecyclerView.Adapter<DrawRecycleAdapter.
         DrawRecycleInformation current = data.get(i);
         viewHolder.title.setText(current.title);
         viewHolder.icon.setImageResource(current.iconId);
+        if(current.active) {
+            viewHolder.layout.setBackground(context.getResources().getDrawable(R.drawable.item_bg_active));
+        } else {
+            viewHolder.layout.setBackground(context.getResources().getDrawable(R.drawable.item_bg));
+        }
     }
 
     public void setClickListener(ClickListener clickListener) {
@@ -54,10 +60,12 @@ public class DrawRecycleAdapter extends RecyclerView.Adapter<DrawRecycleAdapter.
     class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         TextView title;
         ImageView icon;
+        RelativeLayout layout;
+
 
         public MyViewHolder(View itemView) {
             super(itemView);
-
+            layout = (RelativeLayout) itemView;
             title = (TextView) itemView.findViewById(R.id.listText);
             icon = (ImageView) itemView.findViewById(R.id.listIcon);
             itemView.setOnClickListener(this);

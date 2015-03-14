@@ -25,6 +25,11 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.tonyandr.caminoguide.R;
 import com.tonyandr.caminoguide.constants.AppConstants;
 import com.tonyandr.caminoguide.stages.StageActivity;
@@ -46,9 +51,12 @@ import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 //import android.support.v4.app.Fragment;
 
-public class OSMFragment extends Fragment implements AppConstants {
+public class OSMFragment extends Fragment implements AppConstants, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     // ===========================================================
     // Constants
     // ===========================================================
@@ -94,6 +102,20 @@ public class OSMFragment extends Fragment implements AppConstants {
     private Location finish;
     private Boolean mDrawMarkers; // to not draw when recieved broadcast
 
+    //GMS
+    protected static final String TAG = "location-updates-sample";
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 8000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+    // GMS
+    protected GoogleApiClient mGoogleApiClient;
+    protected LocationRequest mLocationRequest;
+
+    static final String KEY_CURRENT_LOCATION = "mCurrentLocation";
+    static final String KEY_LAST_UPD_TIME = "mLastUpdateTime";
+    static final String KEY_SERVICE_ACTION = "GeoService";
+
     // Tasks
     private CalculateDistanceTask   calculateDistanceTask;
     private DrawAllRouteTask        drawAllRouteTask;
@@ -132,29 +154,8 @@ public class OSMFragment extends Fragment implements AppConstants {
         updateValuesFromBundle(savedInstanceState);
 //        mServiceIntent = new Intent(getActivity(), GeoService.class); ,
 
-        br = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mLastUpdateTime = intent.getStringExtra(KEY_LAST_UPD_TIME);
-                mCurrentLocation = intent.getParcelableExtra(KEY_CURRENT_LOCATION);
-                if (mCurrentLocation != null) {
-                    updateUI();
+        startGeoService();
 
-                    if (bundle != null && calculateDistanceTask != null && settings.getBoolean("pref_key_realtime_calculation", false)) {
-                        if (calculateDistanceTask.getStatus() == AsyncTask.Status.FINISHED) {
-                            calculateDistanceTask = new CalculateDistanceTask();
-                            calculateDistanceTask.execute();
-//                            Toast.makeText(getActivity(), "Re-calculation...", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-                if (mFollowUserLocation) {
-                    followUser();
-                }
-
-
-            }
-        };
         IntentFilter intFilt = new IntentFilter(KEY_SERVICE_ACTION);
         getActivity().registerReceiver(br, intFilt);
         mResourceProxy = new ResourceProxyImpl(inflater.getContext().getApplicationContext());
@@ -411,21 +412,32 @@ public class OSMFragment extends Fragment implements AppConstants {
 
     private void setUpMapView() {
 
-//        mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
         mMapView.setTileSource(new XYTileSource("MapQuest",
-                ResourceProxy.string.mapquest_osm, 10, 18, 256, ".jpg", new String[] {
+                ResourceProxy.string.mapquest_osm, 10, 18, 256, ".png", new String[]{
                 "http://otile1.mqcdn.com/tiles/1.0.0/map/",
                 "http://otile2.mqcdn.com/tiles/1.0.0/map/",
                 "http://otile3.mqcdn.com/tiles/1.0.0/map/",
                 "http://otile4.mqcdn.com/tiles/1.0.0/map/"}));
+        mMapView.setUseDataConnection(false); //optional, but a good way to prevent loading from the network and test your zip loading.
+//        final MapTileProviderBasic tileProvider = new MapTileProviderBasic(getActivity());
+//        final ITileSource tileSource = new XYTileSource("Camino", ResourceProxy.string.mapnik, 10,18, 256, ".png", new String[] {""});
+        //mapView.setTileSource((new XYTileSource("localMapnik", Resource, 0, 18, 256, ".png",
+        //  "http://tile.openstreetmap.org/")));
+//        tileProvider.setTileSource(tileSource);
+//        final TilesOverlay tilesOverlay = new TilesOverlay(tileProvider, getActivity());
+//        mMapView.getOverlays().add(tilesOverlay);
+
+
+        // Interesting thing for dload tiles
 //        CacheManager cacheManager = new CacheManager(mMapView);
 //        cacheManager.cleanAreaAsync(getActivity(),areaLimitSpain,10,10);
 
-        mMapView.setUseDataConnection(false); //optional, but a good way to prevent loading from the network and test your zip loading.
         mMapView.getController().setZoom(MIN_ZOOM_LEVEL);
         mMapView.setMinZoomLevel(MIN_ZOOM_LEVEL);
         mMapView.setMaxZoomLevel(MAX_ZOOM_LEVEL);
         mMapView.setScrollableAreaLimit(areaLimitSpain);
+
+
         mMapView.setMapListener(new MapListener() {
 
             @Override
@@ -475,7 +487,6 @@ public class OSMFragment extends Fragment implements AppConstants {
                 mMapView);
         this.mLocationOverlay = new CustomNewLocationOverlay(context, new GpsMyLocationProvider(context),
                 mMapView);
-
 
         mScaleBarOverlay = new ScaleBarOverlay(context);
         mScaleBarOverlay.setCentred(true);
@@ -568,6 +579,8 @@ public class OSMFragment extends Fragment implements AppConstants {
         (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.GONE);
 
         finishAllProcesses();
+        if (mGoogleApiClient.isConnected())
+            stopLocationUpdates();
     }
 
     @Override
@@ -584,8 +597,11 @@ public class OSMFragment extends Fragment implements AppConstants {
             Toast.makeText(getActivity(), "GPS Tracking On", Toast.LENGTH_SHORT).show();
         }
 
-        mServiceIntent = new Intent(getActivity(), GeoService.class);
-        getActivity().startService(mServiceIntent);
+//        mServiceIntent = new Intent(getActivity(), GeoService.class);
+//        getActivity().startService(mServiceIntent);
+
+        if (mGoogleApiClient.isConnected())
+            startLocationUpdates();
 
 //        mIntentFromStage = getActivity().getIntent();
         bundle = getArguments();
@@ -611,6 +627,118 @@ public class OSMFragment extends Fragment implements AppConstants {
             drawLogic();
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void startGeoService() {
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
+    private void stopGeoService() {
+        Log.d(DEBUGTAG, "Stop Location service");
+        if (mGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+            mGoogleApiClient.disconnect();
+        }
+        if (!mGoogleApiClient.isConnected()) {
+            Log.e(DEBUGTAG, "GApiClient switched off");
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        if (mCurrentLocation == null) {
+            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+//            Intent intent = new Intent();
+//            intent.setAction("GeoService");
+//            intent.putExtra(KEY_CURRENT_LOCATION, mCurrentLocation);
+//            sendBroadcast(intent);
+
+//            saveToPrefs();
+        }
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        Log.i(TAG, "Building GoogleApiClient");
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        createLocationRequest();
+    }
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    /**
+     * Requests location updates from the FusedLocationApi.
+     */
+    protected void startLocationUpdates() {
+        // The final argument to {@code requestLocationUpdates()} is a LocationListener
+        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+//        saveToPrefs();
+
+        SharedPreferences.Editor editor = mPrefs.edit();
+        editor.putString("location-string", mCurrentLocation.getLatitude() + "," + mCurrentLocation.getLongitude() + "," + mCurrentLocation.getTime());
+        editor.commit();
+
+        onLocationChangedFunction();
+//        Intent intent = new Intent();
+//        intent.setAction(KEY_SERVICE_ACTION);
+//        intent.putExtra(KEY_CURRENT_LOCATION, mCurrentLocation);
+//        intent.putExtra(KEY_LAST_UPD_TIME, mLastUpdateTime);
+//        sendBroadcast(intent);
+    }
+
+    private void onLocationChangedFunction() {
+        if (mCurrentLocation != null) {
+            updateUI();
+
+            if (bundle != null && calculateDistanceTask != null && settings.getBoolean("pref_key_realtime_calculation", false)) {
+                if (calculateDistanceTask.getStatus() == AsyncTask.Status.FINISHED) {
+                    calculateDistanceTask = new CalculateDistanceTask();
+                    calculateDistanceTask.execute();
+//                            Toast.makeText(getActivity(), "Re-calculation...", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        if (mFollowUserLocation) {
+            followUser();
         }
     }
 
@@ -647,12 +775,14 @@ public class OSMFragment extends Fragment implements AppConstants {
                 Log.d(DEBUGTAG, "drawCityTask cancelled");
             }
         }
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         finishAllProcesses();
+        stopGeoService();
     }
 //
 //    @Override
