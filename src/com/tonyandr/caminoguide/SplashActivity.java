@@ -11,7 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -62,7 +61,6 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
     public BroadcastReceiver br = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("dbservice", "Recieved intent " + intent.getIntExtra("progress", 0));
 
             circleProgressBar.setVisibility(View.GONE);
             progressBar.setVisibility(View.VISIBLE);
@@ -88,7 +86,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
         progressBar.setMax(100);
         textView = (TextView) findViewById(R.id.splash_textview);
 
-        dbControllerAdapter = new DBControllerAdapter(this);
+        dbControllerAdapter = DBControllerAdapter.getInstance(this);
         dbControllerAdapter.checkVersion(); // Re-create db if new version
 
         JsonFilesHandler jfh = new JsonFilesHandler(this);
@@ -101,7 +99,6 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
             mFromSavedInstanceState = true;
         }
         if (!mUserLearnedApp && !mFromSavedInstanceState) {
-            Log.d("dbservice", "First start");
             if (!mUserLearnedApp) {
                 mUserLearnedApp = true;
                 saveToPreferences(KEY_USER_LEARNED_APP, mUserLearnedApp + "");
@@ -142,8 +139,8 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                         @Override
                         public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                            Log.e(DEBUGTAG, "Feedback send Throwable: " + throwable.toString());
-                            Log.e(DEBUGTAG, "Response: " + responseString);
+//                            Log.e(DEBUGTAG, "Feedback send Throwable: " + throwable.toString());
+//                            Log.e(DEBUGTAG, "Response: " + responseString);
 //                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
                         }
 
@@ -152,9 +149,9 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
                             if (responseString.equals("OK")) {
                                 dbControllerAdapter.updateFeedback(_id, 1);
 //                                Toast.makeText(SplashActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
-                                Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
+//                                Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
                             } else {
-                                Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+//                                Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
                             }
                         }
                     });
@@ -184,7 +181,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
                             client.get("http://alberguenajera.es/projects/gms/get_albergues_json.php", new JsonHttpResponseHandler() {
                                 @Override
                                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                                    Log.d("dbservice", "success obj");
+//                                    Log.d("dbservice", "success obj");
 
                                     Intent intent = new Intent(SplashActivity.this, DBUpdateService.class);
                                     try {
@@ -224,7 +221,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                                 @Override
                                 public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                                    Log.e(DEBUGTAG, "Get alb Throwable: " + throwable.toString());
+//                                    Log.e(DEBUGTAG, "Get alb Throwable: " + throwable.toString());
                                     startMapActivity();
                                 }
                             });
@@ -235,7 +232,7 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                        Log.e(DEBUGTAG, "get date Throwable: " + throwable.toString());
+//                        Log.e(DEBUGTAG, "get date Throwable: " + throwable.toString());
                         startMapActivity();
                     }
                 });
@@ -258,7 +255,6 @@ public class SplashActivity extends ActionBarActivity implements AppConstants {
             SharedPreferences.Editor editor = mPrefs.edit();
             editor.remove("location-string");
             editor.commit();
-            Log.w(DEBUGTAG, "mPrefs Location string has been removed!");
         }
     }
 

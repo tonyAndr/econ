@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -45,7 +44,7 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feedback);
-        dbController = new DBControllerAdapter(this);
+        dbController = DBControllerAdapter.getInstance(this);
         mPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
         editText = (EditText) findViewById(R.id.feedback_text);
@@ -86,8 +85,8 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
                         HttpPostClient.post("", requestParams, new TextHttpResponseHandler() {
                             @Override
                             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                                Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
-                                Log.e(DEBUGTAG, "Response: " + responseString);
+//                                Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+//                                Log.e(DEBUGTAG, "Response: " + responseString);
                                 dbController.insertFeedback(editText.getText().toString(), f_lat, f_lng, 0);
                                 Toast.makeText(FeedbackActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
                             }
@@ -100,7 +99,7 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
 //                                Toast.makeText(FeedbackActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
                                     successLayout.setVisibility(View.VISIBLE);
                                 } else {
-                                    Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+//                                    Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
                                 }
                             }
                         });
@@ -147,8 +146,8 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                        Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
-                        Log.e(DEBUGTAG, "Response: " + responseString);
+//                        Log.e(DEBUGTAG, "Throwable: " + throwable.toString());
+//                        Log.e(DEBUGTAG, "Response: " + responseString);
 //                            Toast.makeText(SplashActivity.this, "Failed to send, message saved", Toast.LENGTH_SHORT).show();
                     }
 
@@ -157,9 +156,9 @@ public class FeedbackActivity extends ActionBarActivity implements AppConstants{
                         if (responseString.equals("OK")) {
                             dbController.updateFeedback(_id, 1);
 //                                Toast.makeText(SplashActivity.this, "Thank you for feedback! :)", Toast.LENGTH_SHORT).show();
-                            Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
+//                            Log.w(DEBUGTAG, "Feedback sent, id: " + _id);
                         } else {
-                            Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
+//                            Log.e(DEBUGTAG, "Response NOT OK: " + responseString);
                         }
                     }
                 });

@@ -97,7 +97,6 @@ public class MoveService extends Service implements AppConstants{
             public void onReceive(Context context, Intent intent) {
                 long reference = intent.getLongExtra(DownloadManager
                         .EXTRA_DOWNLOAD_ID, -1);
-                Log.w(DEBUGTAG, "received reference: " + reference);
                 DownloadManager.Query query = new DownloadManager.Query();
                 query.setFilterById(reference);
                 Cursor cursor = downloadManager.query(query);
@@ -179,16 +178,13 @@ public class MoveService extends Service implements AppConstants{
             for (ParcebleDownloadQueue item : queue) {
                 if (item.getStrValue().equals(fileDesc)) {
                     toDel = item;
-                    Log.w(DEBUGTAG, "removed from queue: " + fileDesc);
                 }
             }
             queue.remove(toDel);
             if (queue.size() == 0) {
-                Log.w(DEBUGTAG, "broadcast receiver service selfStoped");
                 stopSelf();
             }
         } else {
-            Log.w(DEBUGTAG, "broadcast receiver service selfStoped");
             stopSelf();
         }
     }
@@ -198,18 +194,15 @@ public class MoveService extends Service implements AppConstants{
         if (queue.size() > 0) {
             for (ParcebleDownloadQueue item : queue) {
                 if (item.getLongValue() == ref) {
-                    Log.w(DEBUGTAG, "removed from queue: " + ref);
                     toDel = item;
 
                 }
             }
             queue.remove(toDel);
             if (queue.size() == 0) {
-                Log.w(DEBUGTAG, "broadcast receiver service selfStoped");
                 stopSelf();
             }
         } else {
-            Log.w(DEBUGTAG, "broadcast receiver service selfStoped");
             stopSelf();
         }
     }

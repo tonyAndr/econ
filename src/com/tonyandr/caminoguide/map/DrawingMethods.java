@@ -3,7 +3,6 @@ package com.tonyandr.caminoguide.map;
 import android.content.Context;
 import android.graphics.Color;
 import android.location.Location;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -46,129 +45,24 @@ public class DrawingMethods implements AppConstants {
         this.context = context;
         this.mapView = mapView;
         jfh = new JsonFilesHandler(context);
-        dbController = new DBControllerAdapter(context);
+        dbController = DBControllerAdapter.getInstance(context);
         geoMethods = new GeoMethods(context);
     }
 
     public DrawingMethods(Context context) {
         this.context = context;
         jfh = new JsonFilesHandler(context);
-        dbController = new DBControllerAdapter(context);
+        dbController = DBControllerAdapter.getInstance(context);
         geoMethods = new GeoMethods(context);
     }
 
     // *** Get array of geopoints to osm and gmap
-
-    public JSONArray getRouteArrayOld(Location current, Location finish) throws JSONException {
-        JSONArray jsonArray = new JSONArray();
-        int current_stage, current_point, finish_stage, finish_point;
-        finishData = geoMethods.onWhichStage(finish);
-        if (finishData != null) {
-            Log.w(DEBUGTAG, "getArray: finish != null");
-            finish_stage = finishData.stageId;
-            finish_point = finishData.pointId;
-            currentData = geoMethods.onWhichStage(current);
-
-            if (currentData != null) {
-                Log.w(DEBUGTAG, "getArray: current != null");
-                current_stage = currentData.stageId;
-                current_point = currentData.pointId;
-                if (current_stage == finish_stage) { // Odinakoviy stage
-                    Log.w(DEBUGTAG, "getArray: current_stage == finish_stage");
-                    JSONObject jsonObject = jfh.parseJSONObj("json/stage" + current_stage + ".json");
-                    Log.w(DEBUGTAG, "getArray: curr_point = " + current_point + " finish_point = " + finish_point);
-                    if (current_point > finish_point) { // Dvijenie nazad
-                        Log.w(DEBUGTAG, "getArray: Dvijenie nazad");
-                        JSONArray geoArray = jsonObject.getJSONArray("geo");
-                        for (int i = current_point; i >= finish_point; i--) {
-                            jsonArray.put(geoArray.getJSONObject(i));
-                            Log.w(DEBUGTAG, "getArray: object added");
-                        }
-                    } else if (current_point < finish_point) { // Dvijenie vpered
-                        Log.w(DEBUGTAG, "getArray: Dvijenie vpered");
-                        JSONArray geoArray = jsonObject.getJSONArray("geo");
-                        for (int i = current_point; i <= finish_point; i++) {
-                            jsonArray.put(geoArray.getJSONObject(i));
-                            Log.w(DEBUGTAG, "getArray: object added");
-                        }
-                    } else { // oni ravni => ne risuem
-                        Log.w(DEBUGTAG, "getArray: points ravni => ne risuem");
-                    }
-                } else { // Razniy stage
-                    Log.w(DEBUGTAG, "getArray: current_stage != finish_stage");
-                    if (current_stage > finish_stage) { // Nash stage dalwe chem tochka, dvijenie nazad
-                        Log.w(DEBUGTAG, "getArray: Nash stage dalwe chem tochka, dvijenie nazad");
-                        Log.w(DEBUGTAG, "getArray: cur_stage = " + current_stage + " fin_stage = " + finish_stage);
-
-                        for (int i = current_stage; i >= finish_stage; i--) {
-                            JSONObject jsonObject = jfh.parseJSONObj("json/stage" + i + ".json");
-                            JSONArray geoArray = jsonObject.getJSONArray("geo");
-                            if (i == current_stage) {
-                                for (int j = current_point; j >= 0; j--) {
-                                    jsonArray.put(geoArray.getJSONObject(j));
-                                    Log.w(DEBUGTAG, "getArray: object added");
-                                }
-                            } else if (i == finish_stage) {
-                                for (int j = geoArray.length() - 1; j >= finish_point; j--) {
-                                    jsonArray.put(geoArray.getJSONObject(j));
-                                    Log.w(DEBUGTAG, "getArray: object added");
-                                }
-                            } else {
-                                for (int j = geoArray.length() - 1; j >= 0; j--) {
-                                    jsonArray.put(geoArray.getJSONObject(j));
-                                    Log.w(DEBUGTAG, "getArray: object added");
-                                }
-                            }
-                        }
-                    } else {
-                        Log.w(DEBUGTAG, "getArray: Tochka dalwee chem curr_stage, dvij forward");
-                        Log.w(DEBUGTAG, "getArray: cur_stage = " + current_stage + " fin_stage = " + finish_stage);
-                        for (int i = current_stage; i <= finish_stage; i++) {
-                            JSONObject jsonObject = jfh.parseJSONObj("json/stage" + i + ".json");
-                            JSONArray geoArray = jsonObject.getJSONArray("geo");
-                            if (i == current_stage) {
-                                for (int j = current_point; j < geoArray.length(); j++) {
-                                    jsonArray.put(geoArray.getJSONObject(j));
-                                    Log.w(DEBUGTAG, "getArray: object added");
-                                }
-                            } else if (i == finish_stage) {
-                                for (int j = 0; j <= finish_point; j++) {
-                                    jsonArray.put(geoArray.getJSONObject(j));
-                                    Log.w(DEBUGTAG, "getArray: object added");
-                                }
-                            } else {
-                                for (int j = 0; j < geoArray.length(); j++) {
-                                    jsonArray.put(geoArray.getJSONObject(j));
-                                    Log.w(DEBUGTAG, "getArray: object added");
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                Log.w(DEBUGTAG, "getArray: current == null");
-                Log.w(DEBUGTAG, "getArray: fin_stg = " + finish_stage + " fin_pnt = " + finish_point);
-                JSONObject jsonObject = jfh.parseJSONObj("json/stage" + finish_stage + ".json");
-                JSONArray geoArray = jsonObject.getJSONArray("geo");
-                for (int j = 0; j < geoArray.length(); j++) {
-                    jsonArray.put(geoArray.getJSONObject(j));
-                    Log.w(DEBUGTAG, "getArray: object added");
-                }
-            }
-        } else {
-            Log.e(DEBUGTAG, "Finish location == null, WTF?!");
-        }
-        Log.w(DEBUGTAG, "getArray: array's total length = " + jsonArray.length());
-        return jsonArray;
-    }
-
     public JSONArray getRouteArray(Location current, Location finish) throws JSONException {
         returnArray = new JSONArray();
         String current_type, finish_type;
         finishData = geoMethods.onWhichStage(finish);
         if (finishData != null) {
             finish_type = (finishData.alt ? "alt" : "main");
-            Log.w(DEBUGTAG, "getArray: finish != null");
             currentData = geoMethods.onWhichStage(current);
             if (currentData != null) {
                 current_type = (currentData.alt ? "alt" : "main");

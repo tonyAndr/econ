@@ -116,12 +116,14 @@ public class FragmentStageList extends Fragment implements AppConstants {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        int index = listView.getFirstVisiblePosition();
-        View v = listView.getChildAt(0);
-        int top = (v == null) ? 0 : (v.getTop() - listView.getPaddingTop());
+        if (listView != null) {
+            int index = listView.getFirstVisiblePosition();
+            View v = listView.getChildAt(0);
+            int top = (v == null) ? 0 : (v.getTop() - listView.getPaddingTop());
 
-        outState.putInt("listIndex", index);
-        outState.putInt("listTop", top);
+            outState.putInt("listIndex", index);
+            outState.putInt("listTop", top);
+        }
     }
 
     class CurrentStage extends AsyncTask<Void, Void, Void> {

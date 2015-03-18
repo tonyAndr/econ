@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,7 +50,6 @@ public class MapDeleteFragment extends Fragment implements AppConstants {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        Log.w(DEBUGTAG, "Delete fr created");
 
     }
 
@@ -96,7 +94,6 @@ public class MapDeleteFragment extends Fragment implements AppConstants {
         for (int i = 0; i < mapList.size(); i++) {
             MaplistInfo maplistInfo = mapList.get(i);
             if (maplistInfo.isSelected()) {
-                Log.d("Download", "Mapinfo Title is " + maplistInfo.getTitle());
                 mapList.get(i).setStatus(LIST_ITEM_STATUS_INPROGRESS);
                 if (listView.getChildAt(i) != null) {
                     (((ViewGroup)listView.getChildAt(i)).getChildAt(0)).setVisibility(View.GONE);
@@ -121,12 +118,11 @@ public class MapDeleteFragment extends Fragment implements AppConstants {
 
     private void DeleteFiles(File f) { // Delete *.zip
 
-        Log.d("Delete", "path: " +f.getAbsolutePath());
         if (f.exists()) {
             f.delete();
         }
         else {
-            Log.d("Delete", "not exists");
+//            Log.d("Delete", "not exists");
         }
     }
     private void mapDelete(String title) { // Delete selected stage's maps

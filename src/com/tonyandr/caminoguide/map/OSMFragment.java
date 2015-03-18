@@ -13,9 +13,9 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -38,6 +38,7 @@ import com.tonyandr.caminoguide.utils.GeoMethods;
 
 import org.json.JSONException;
 import org.osmdroid.ResourceProxy;
+import org.osmdroid.bonuspack.kml.KmlDocument;
 import org.osmdroid.bonuspack.overlays.FolderOverlay;
 import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
@@ -51,6 +52,7 @@ import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -102,6 +104,8 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
     private Location finish;
     private Boolean mDrawMarkers; // to not draw when recieved broadcast
 
+    private TextView mKmTogo;
+
     //GMS
     protected static final String TAG = "location-updates-sample";
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 8000;
@@ -143,13 +147,14 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
         mDrawMarkers = true;
         mPrefs = getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        if (mPrefs.contains(LOCATION_KEY_LAT)) {
-            mCurrentLocation = new Location("");
-            mCurrentLocation.setLatitude(mPrefs.getFloat(LOCATION_KEY_LAT, 43.1f));
-            mCurrentLocation.setLongitude(mPrefs.getFloat(LOCATION_KEY_LNG, -2.9f));
-        }
-        if (mPrefs.contains(KEY_LAST_UPD_TIME)) {
-            mLastUpdateTime = mPrefs.getString(KEY_LAST_UPD_TIME, "Not available");
+        if (mPrefs.contains("location-string")) {
+            String[] loc_string = mPrefs.getString("location-string", "").split(",");
+            if (loc_string.length > 1) {
+                mCurrentLocation = new Location("");
+                mCurrentLocation.setLatitude(Double.parseDouble(loc_string[0]));
+                mCurrentLocation.setLongitude(Double.parseDouble(loc_string[1]));
+                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date(Long.parseLong(loc_string[2])));
+            }
         }
         updateValuesFromBundle(savedInstanceState);
 //        mServiceIntent = new Intent(getActivity(), GeoService.class); ,
@@ -182,6 +187,7 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
         mZoomOut = (ImageButton) getActivity().findViewById(R.id.zoomOutBtn);
         geoMethods = new GeoMethods(getActivity());
         drawingMethods = new DrawingMethods(mMapView, getActivity());
+        mKmTogo = ((TextView)getActivity().findViewById(R.id.km_togo_id));
 
         albMarkersOverlay = new FolderOverlay(getActivity());
         cityMarkersOverlay = new FolderOverlay(getActivity());
@@ -212,25 +218,30 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
         setUpMapView();
         setMapViewPreferences();
         setHasOptionsMenu(true);
+
+        setHardwareAccelerationOff();
     }
 
+    private void testKmlDraw() {
+        KmlDocument kmlDocument = new KmlDocument();
+        File f = new File(Environment.getExternalStorageDirectory().getPath() +"/osmdroid/test_kml.kml");
+        kmlDocument.parseKMLFile(f);
+        FolderOverlay kmlOverlay = (FolderOverlay)kmlDocument.mKmlRoot.buildOverlay(mMapView, null, null, kmlDocument);
+        mMapView.getOverlays().add(kmlOverlay);
+        mMapView.invalidate();
+    }
     private void drawLogic() throws JSONException {
-        Log.d(DEBUGTAG, "Calculating logic...");
         bundle = getArguments();
         if (bundle != null) {
-            Log.d(DEBUGTAG, "We have bundle");
             mFinishLocation = new Location("");
             mFinishLocation.setLatitude(bundle.getDouble("lat"));
             mFinishLocation.setLongitude(bundle.getDouble("lng"));
             getActivity().setTitle(bundle.getString("title"));
             if (mCurrentLocation != null) {
-                calculateDistanceTask = new CalculateDistanceTask();
-                calculateDistanceTask.execute();
-                Log.d(DEBUGTAG, "We have location");
                 if (areaLimitSpain.contains(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))) {
-                    Log.d(DEBUGTAG, "We are on route");
+                    calculateDistanceTask = new CalculateDistanceTask();
+                    calculateDistanceTask.execute();
                     if (bundle.getBoolean("globe", false) && bundle.getBoolean("near", false)) {
-                        Log.d(DEBUGTAG, "From globe");
                         mMapView.getController().setCenter(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
                         mMapView.getController().setZoom(SHOW_STAGE_ZOOM_LEVEL);
                     } else {
@@ -238,9 +249,9 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
                         mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
                     }
                 } else {
-                    Log.d(DEBUGTAG, "We are not on route");
+                    drawAllRouteTask = new DrawAllRouteTask();
+                    drawAllRouteTask.execute(bundle.getInt("stage_id"));
                     if (bundle.getBoolean("globe", false)) {
-                        Log.d(DEBUGTAG, "From globe");
                         mMapView.getController().setCenter(new GeoPoint(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()));
                         mMapView.getController().setZoom(SHOW_STAGE_ZOOM_LEVEL);
                     } else {
@@ -251,7 +262,6 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
             } else {
                 drawAllRouteTask = new DrawAllRouteTask();
                 drawAllRouteTask.execute(bundle.getInt("stage_id"));
-                Log.d(DEBUGTAG, "No location.");
                 mMapView.getController().setCenter(new GeoPoint(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()));
                 mMapView.getController().setZoom(TRACK_ZOOM_LEVEL);
             }
@@ -259,20 +269,17 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
         } else {
             drawAllRouteTask = new DrawAllRouteTask();
             drawAllRouteTask.execute(0);
+//            testKmlDraw();
             if (mCurrentLocation != null) {
-                Log.d(DEBUGTAG, "We have location and no bundle recieved");
                 if (areaLimitSpain.contains(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))) {
-                    Log.d(DEBUGTAG, "We are on route");
                     mMapView.getController().setCenter(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
                     mMapView.getController().setZoom(SHOW_STAGE_ZOOM_LEVEL);
                 } else {
-                    Log.d(DEBUGTAG, "We are not on route");
                     GeoPoint startPoint = new GeoPoint(42.4167413, -2.7294623);
                     mMapView.getController().setCenter(startPoint);
                     mMapView.getController().setZoom(SHOW_STAGE_ZOOM_LEVEL);
                 }
             } else {
-                Log.d(DEBUGTAG, "No location, no intent. Draw all.");
                 GeoPoint startPoint = new GeoPoint(42.4167413, -2.7294623);
                 mMapView.getController().setCenter(startPoint);
                 mMapView.getController().setZoom(SHOW_STAGE_ZOOM_LEVEL);
@@ -307,7 +314,16 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
             }
 
             mMapView.invalidate();
-            Toast.makeText(getActivity(), String.format("%.1f", distanceToFinish) + " km left", Toast.LENGTH_LONG).show();
+
+// Start the animation
+
+            mKmTogo.setVisibility(View.VISIBLE);
+            mKmTogo.setAlpha(0.0f);
+            mKmTogo.setText(String.format("%.1f", distanceToFinish) + " KM LEFT");
+            mKmTogo.animate()
+                    .setDuration(500)
+                    .alpha(1.0f);
+//            Toast.makeText(getActivity(), , Toast.LENGTH_LONG).show();
             hideLoadingBanner();
         }
     }
@@ -413,7 +429,7 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
     private void setUpMapView() {
 
         mMapView.setTileSource(new XYTileSource("MapQuest",
-                ResourceProxy.string.mapquest_osm, 10, 18, 256, ".png", new String[]{
+                ResourceProxy.string.mapquest_osm, 8, 18, 256, ".png", new String[]{
                 "http://otile1.mqcdn.com/tiles/1.0.0/map/",
                 "http://otile2.mqcdn.com/tiles/1.0.0/map/",
                 "http://otile3.mqcdn.com/tiles/1.0.0/map/",
@@ -560,9 +576,9 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
 //        edit.putInt(PREFS_ZOOM_LEVEL, mMapView.getZoomLevel());
         edit.putBoolean(PREFS_SHOW_LOCATION, mLocationOverlay.isMyLocationEnabled());
         if (mCurrentLocation != null) {
-            edit.putFloat("lat", (float) mCurrentLocation.getLatitude());
-            edit.putFloat("lng", (float) mCurrentLocation.getLongitude());
+            edit.putString("location-string", mCurrentLocation.getLatitude() + "," + mCurrentLocation.getLongitude() + "," + mCurrentLocation.getTime());
         }
+
         edit.commit();
 
         this.mLocationOverlay.disableMyLocation();
@@ -575,6 +591,7 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
             ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.GONE);
             ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.GONE);
             ((StageActivity) getActivity()).geoOutTextViewTime.setVisibility(View.GONE);
+            mKmTogo.setVisibility(View.GONE);
         }
         (getActivity().findViewById(R.id.progress_drawing_id)).setVisibility(View.GONE);
 
@@ -616,6 +633,7 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
                 ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.VISIBLE);
                 ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.VISIBLE);
                 ((StageActivity) getActivity()).geoOutTextViewTime.setVisibility(View.VISIBLE);
+//                ((TextView)getActivity().findViewById(R.id.km_togo_id)).setVisibility(View.VISIBLE);
             } else {
                 ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.GONE);
                 ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.GONE);
@@ -639,13 +657,11 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
     }
 
     private void stopGeoService() {
-        Log.d(DEBUGTAG, "Stop Location service");
         if (mGoogleApiClient.isConnected()) {
             stopLocationUpdates();
             mGoogleApiClient.disconnect();
         }
         if (!mGoogleApiClient.isConnected()) {
-            Log.e(DEBUGTAG, "GApiClient switched off");
         }
     }
 
@@ -673,11 +689,10 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+//        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
     protected synchronized void buildGoogleApiClient() {
-        Log.i(TAG, "Building GoogleApiClient");
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -754,28 +769,25 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
         if (calculateDistanceTask != null) {
             if (calculateDistanceTask.getStatus() != AsyncTask.Status.FINISHED) {
                 calculateDistanceTask.cancel(true);
-                Log.d(DEBUGTAG, "calculateTask cancelled");
             }
         }
         if (drawAllRouteTask != null) {
             if (drawAllRouteTask.getStatus() != AsyncTask.Status.FINISHED) {
                 drawAllRouteTask.cancel(true);
-                Log.d(DEBUGTAG, "drawStageTask cancelled");
             }
         }
         if ( drawAlbMarkersTask != null) {
             if (drawAlbMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
                 drawAlbMarkersTask.cancel(true);
-                Log.d(DEBUGTAG, "drawAlbTask cancelled");
             }
         }
         if (drawCityMarkersTask != null) {
             if (drawCityMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
                 drawCityMarkersTask.cancel(true);
-                Log.d(DEBUGTAG, "drawCityTask cancelled");
             }
         }
-
+        mMapView.getTileProvider().clearTileCache();
+        System.gc();
     }
 
     @Override
@@ -783,6 +795,7 @@ public class OSMFragment extends Fragment implements AppConstants, GoogleApiClie
         super.onDestroy();
         finishAllProcesses();
         stopGeoService();
+
     }
 //
 //    @Override

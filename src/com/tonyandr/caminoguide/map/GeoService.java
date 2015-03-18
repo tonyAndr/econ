@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -60,7 +59,6 @@ public class GeoService extends Service implements GoogleApiClient.ConnectionCal
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e(DEBUGTAG, "Start location service");
         mPrefs = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
@@ -79,13 +77,9 @@ public class GeoService extends Service implements GoogleApiClient.ConnectionCal
     public void onDestroy() {
         super.onDestroy();
 
-        Log.d(DEBUGTAG, "Stop Location service");
         if (mGoogleApiClient.isConnected()) {
             stopLocationUpdates();
             mGoogleApiClient.disconnect();
-        }
-        if (!mGoogleApiClient.isConnected()) {
-            Log.e(DEBUGTAG, "GApiClient switched off");
         }
     }
 
@@ -101,7 +95,6 @@ public class GeoService extends Service implements GoogleApiClient.ConnectionCal
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
     @Override
@@ -121,7 +114,6 @@ public class GeoService extends Service implements GoogleApiClient.ConnectionCal
     }
 
     protected synchronized void buildGoogleApiClient() {
-        Log.i(TAG, "Building GoogleApiClient");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)

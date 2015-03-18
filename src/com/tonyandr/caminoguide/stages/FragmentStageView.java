@@ -13,7 +13,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -76,6 +75,7 @@ public class FragmentStageView extends Fragment implements AppConstants {
 
     private TaskLoadData taskLoadData;
     private FillListViewTask fillListViewTask;
+    private DBControllerAdapter dbController;
 
 
     public static final String KEY_STAGEID = "stageId";
@@ -112,6 +112,8 @@ public class FragmentStageView extends Fragment implements AppConstants {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        dbController = DBControllerAdapter.getInstance(getActivity());
+
         mPrefs = getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         stageId = mPrefs.getInt(PREFS_STAGELIST_STAGEID, DEF_STAGEID);
         fromto = mPrefs.getString(PREFS_STAGELIST_FROMTO, DEF_FROMTO);
@@ -140,7 +142,6 @@ public class FragmentStageView extends Fragment implements AppConstants {
                 bundle.putDouble("lat", row.lat);
                 bundle.putDouble("lng", row.lng);
                 bundle.putString("title", row.title);
-                Log.d("LV", "Clicked: " + row.title + " " + row.lat + ":" + row.lng);
                 if (settings.getBoolean("pref_key_offline_mode", true)) {
                     OSMFragment osmFragment = new OSMFragment();
                     osmFragment.setArguments(bundle);
@@ -228,7 +229,6 @@ public class FragmentStageView extends Fragment implements AppConstants {
         fillListViewTask.execute();
 
         tvStagename.setText(fromto);
-        Log.e("StageLog", "onActivityCreated, before load json, INDEX: " + stageId);
 
         setHasOptionsMenu(true);
 //        getJsonData(stageId);
@@ -248,13 +248,12 @@ public class FragmentStageView extends Fragment implements AppConstants {
 //            String alb_path = "json/albergues.json";
 //            albJArr = jfh.parseJSONArr(alb_path);
             DBControllerAdapter dbControllerAdapter;
-            dbControllerAdapter = new DBControllerAdapter(getActivity());
+            dbControllerAdapter = DBControllerAdapter.getInstance(getActivity());
             try {
                 albJArr = dbControllerAdapter.getAlbergues(stageId);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Log.d("ListView", "AsyncStarted");
         }
 
         @Override
@@ -271,6 +270,13 @@ public class FragmentStageView extends Fragment implements AppConstants {
                         locality = v.getString("locality");
                         tel = v.getString("tel");
                         type = v.getString("type");
+                        switch(type) {
+                            case "P": type = "Private"; break;
+                            case "Par": type = "Parroquial"; break;
+                            case "X": type = "Private"; break;
+                            case "M": type = "Municipal"; break;
+                            default: break;
+                        }
                         beds = v.getString("beds");
                         stage_id = v.getInt("stage");
                         lat = v.getDouble("lat");
@@ -301,7 +307,6 @@ public class FragmentStageView extends Fragment implements AppConstants {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            Log.d("ListView", "Finish");
 
         }
     }
@@ -369,6 +374,7 @@ public class FragmentStageView extends Fragment implements AppConstants {
             if (fillListViewTask.getStatus() != AsyncTask.Status.FINISHED)
                 fillListViewTask.cancel(true);
 
+        dbController.closeConnection();
     }
 
     @Override
@@ -434,7 +440,6 @@ public class FragmentStageView extends Fragment implements AppConstants {
 
         @Override
         protected Void doInBackground(Integer... params) {
-            Log.v("STAGE", "Index in async: " + params[0]);
             JSONObject fileObj = jfh.parseJSONObj("json/stage" + params[0] + ".json");
             try {
                 Location gps = getGPS();
@@ -443,7 +448,7 @@ public class FragmentStageView extends Fragment implements AppConstants {
                 int parts = fileObj.getInt("parts");
                 JSONObject main = fileObj.getJSONObject("main");
                 int highlightCount = 0;
-                if (onStageLocationData != null) {
+                if (onStageLocationData != null && parts > 1) {
                         JSONObject alt = fileObj.getJSONObject("alt");
                         for (int i = 0; i < parts; i++) {
                             JSONArray ar = new JSONArray();

@@ -109,12 +109,10 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
                 if (stageNames[i].equals(title)) {
                     int stage_id = i + 1;
                     if (!(new File(path_osmdroid + "stage" + stage_id + ".zip")).exists() && !(new File(path_osmdroid + "temp/stage" + stage_id + ".zip")).exists()) {
-                        Log.d(DEBUGTAG, "Load stage #" + stage_id);
                         mapsUrl = "http://alberguenajera.es/projects/ecn/stage" + stage_id + ".zip";
                     }
                 } else if (title.equals("Spain Base Map")) {
                     if (!(new File(path_osmdroid + "map_overview.zip")).exists() && !(new File(path_osmdroid + "temp/map_overview.zip")).exists()) {
-                        Log.d(DEBUGTAG, "Load map_overview");
                         mapsUrl = "http://alberguenajera.es/projects/ecn/map_overview.zip";
                     }
                 } else {
@@ -160,7 +158,6 @@ public class MapDownloadFragment extends Fragment implements AppConstants{
 //                        responseText.append("\n" + maplistInfo.getTitle());
                 String title = maplistInfo.getTitle();
                 long reference = mapDownload(title, i);
-                Log.d(DEBUGTAG, "Mapinfo Title is " + title);
                 ParcebleDownloadQueue p = new ParcebleDownloadQueue();
                 p.setLongValue(reference);
                 p.setStrValue(title);

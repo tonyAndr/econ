@@ -113,6 +113,22 @@
         <include
             android:id="@+id/progress_drawing_id"
             layout="@layout/drawing_progress" />
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/km_togo_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="%% KM LEFT..."
+            android:gravity="center"
+            android:textColor="#FFFFFFFF"
+            android:padding="8dp"
+            android:textSize="16sp"
+            android:background="@drawable/item_kmtogo_bg"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="16dp"
+            android:layout_marginBottom="24dp"
+            android:textStyle="bold" />
     </RelativeLayout>
 
 

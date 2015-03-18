@@ -11,7 +11,6 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -37,6 +36,7 @@ import com.tonyandr.caminoguide.utils.GeoMethods;
 import com.tonyandr.caminoguide.utils.MarkerDataObject;
 
 import org.json.JSONException;
+import org.osmdroid.util.GeoPoint;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -67,6 +67,7 @@ public class GMapFragment extends MapFragment implements AppConstants {
     private Boolean mDrawMarkers; // to not draw when recieved broadcast
     private Polyline line;
 
+    private TextView mKmTogo;
 
     // Tasks
     private CalculateDistanceTask calculateDistanceTask;
@@ -98,21 +99,23 @@ public class GMapFragment extends MapFragment implements AppConstants {
         mDrawMarkers = true;
         geoMethods = new GeoMethods(getActivity());
         drawingMethods = new DrawingMethods(getActivity());
+        mKmTogo = ((TextView)getActivity().findViewById(R.id.km_togo_id));
+
 
 //        mCurrentLocation = new Location("");
         mFirstCameraMove = false;
         mPrefs = getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        if (mPrefs.contains(LOCATION_KEY_LAT)) {
-            mCurrentLocation = new Location("");
-            mCurrentLocation.setLatitude(mPrefs.getFloat(LOCATION_KEY_LAT, 43.1f));
-            mCurrentLocation.setLongitude(mPrefs.getFloat(LOCATION_KEY_LNG, -2.9f));
-        }
-        if (mPrefs.contains(KEY_LAST_UPD_TIME)) {
-            mLastUpdateTime = mPrefs.getString(KEY_LAST_UPD_TIME, "Not available");
+        if (mPrefs.contains("location-string")) {
+            String[] loc_string = mPrefs.getString("location-string", "").split(",");
+            if (loc_string.length > 1) {
+                mCurrentLocation = new Location("");
+                mCurrentLocation.setLatitude(Double.parseDouble(loc_string[0]));
+                mCurrentLocation.setLongitude(Double.parseDouble(loc_string[1]));
+                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date(Long.parseLong(loc_string[2])));
+            }
         }
         updateValuesFromBundle(savedInstanceState);
-        Log.d(DEBUGTAG, "onActivityCreated bundle updated");
 
         map = getMap();
         map.getUiSettings().setMyLocationButtonEnabled(false);
@@ -146,7 +149,6 @@ public class GMapFragment extends MapFragment implements AppConstants {
             public void onReceive(Context context, Intent intent) {
                 mLastUpdateTime = intent.getStringExtra(KEY_LAST_UPD_TIME);
                 mCurrentLocation = intent.getParcelableExtra(KEY_CURRENT_LOCATION);
-                Log.d(DEBUGTAG, "Location broadcast recieved");
                 if (mCurrentLocation != null) {
                     updateUI();
 
@@ -232,12 +234,12 @@ public class GMapFragment extends MapFragment implements AppConstants {
 
 
 
-        map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-            @Override
-            public void onMapLoaded() {
-                showMapControls();
-            }
-        });
+//        map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+//            @Override
+//            public void onMapLoaded() {
+//                showMapControls();
+//            }
+//        });
 
         IntentFilter intFilt = new IntentFilter(KEY_SERVICE_ACTION);
         getActivity().registerReceiver(br, intFilt);
@@ -282,11 +284,14 @@ public class GMapFragment extends MapFragment implements AppConstants {
     public void onResume() {
         super.onResume();
 
+        showMapControls();
+
         if (getActivity() instanceof StageActivity) {
             if (settings.getBoolean("pref_key_info_geo", false)) {
                 ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.VISIBLE);
                 ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.VISIBLE);
                 ((StageActivity) getActivity()).geoOutTextViewTime.setVisibility(View.VISIBLE);
+//                ((TextView)getActivity().findViewById(R.id.km_togo_id)).setVisibility(View.VISIBLE);
             } else {
                 ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.GONE);
                 ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.GONE);
@@ -330,12 +335,13 @@ public class GMapFragment extends MapFragment implements AppConstants {
             ((StageActivity) getActivity()).geoOutTextViewLon.setVisibility(View.GONE);
             ((StageActivity) getActivity()).geoOutTextViewLat.setVisibility(View.GONE);
             ((StageActivity) getActivity()).geoOutTextViewTime.setVisibility(View.GONE);
+            mKmTogo.setVisibility(View.GONE);
+
         }
 
         final SharedPreferences.Editor edit = mPrefs.edit();
         if (mCurrentLocation != null) {
-            edit.putFloat("lat", (float) mCurrentLocation.getLatitude());
-            edit.putFloat("lng", (float) mCurrentLocation.getLongitude());
+            edit.putString("location-string", mCurrentLocation.getLatitude() + "," + mCurrentLocation.getLongitude() + "," + mCurrentLocation.getTime());
         }
         edit.commit();
 
@@ -360,25 +366,21 @@ public class GMapFragment extends MapFragment implements AppConstants {
         if (calculateDistanceTask != null) {
             if (calculateDistanceTask.getStatus() != AsyncTask.Status.FINISHED) {
                 calculateDistanceTask.cancel(true);
-                Log.d(DEBUGTAG, "calculateTask cancelled");
             }
         }
         if (drawAllRouteTask != null) {
             if (drawAllRouteTask.getStatus() != AsyncTask.Status.FINISHED) {
                 drawAllRouteTask.cancel(true);
-                Log.d(DEBUGTAG, "drawStageTask cancelled");
             }
         }
         if ( drawAlbMarkersTask != null) {
             if (drawAlbMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
                 drawAlbMarkersTask.cancel(true);
-                Log.d(DEBUGTAG, "drawAlbTask cancelled");
             }
         }
         if (drawCityMarkersTask != null) {
             if (drawCityMarkersTask.getStatus() != AsyncTask.Status.FINISHED) {
                 drawCityMarkersTask.cancel(true);
-                Log.d(DEBUGTAG, "drawCityTask cancelled");
             }
         }
 
@@ -451,7 +453,12 @@ public class GMapFragment extends MapFragment implements AppConstants {
                 drawCityMarkersTask = new DrawCityMarkersTask();
                 drawCityMarkersTask.execute();
             }
-            Toast.makeText(getActivity(), String.format("%.1f", distanceToFinish) + " km left", Toast.LENGTH_LONG).show();
+            mKmTogo.setVisibility(View.VISIBLE);
+            mKmTogo.setAlpha(0.0f);
+            mKmTogo.setText(String.format("%.1f", distanceToFinish) + " KM LEFT");
+            mKmTogo.animate()
+                    .setDuration(500)
+                    .alpha(1.0f);
             hideLoadingBanner();
         }
     }
@@ -471,7 +478,6 @@ public class GMapFragment extends MapFragment implements AppConstants {
         @Override
         protected Void doInBackground(Integer... params) {
             try {
-                Log.w(DEBUGTAG, "globe stage: " + params[0]);
                 polylineOptions = drawingMethods.drawAllRouteGMAP(params[0]);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -580,41 +586,43 @@ public class GMapFragment extends MapFragment implements AppConstants {
     }
 
     private void drawLogic() throws JSONException {
-        Log.d("drawlogic", "Calculating logic...");
 
         bundle = getArguments();
         if (bundle != null) {
-            Log.d(DEBUGTAG, "We have bundle");
             mFinishLocation = new Location("");
             mFinishLocation.setLatitude(bundle.getDouble("lat"));
             mFinishLocation.setLongitude(bundle.getDouble("lng"));
             getActivity().setTitle(bundle.getString("title"));
             if (mCurrentLocation != null) {
-                calculateDistanceTask = new CalculateDistanceTask();
-                calculateDistanceTask.execute();
-                Log.d(DEBUGTAG, "We have location");
-                if (bundle.getBoolean("globe", false) && bundle.getBoolean("near", false)) {
-                    Log.d(DEBUGTAG, "From globe");
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), SHOW_STAGE_ZOOM_LEVEL));
+                if (areaLimitSpain.contains(new GeoPoint(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))) {
+                    calculateDistanceTask = new CalculateDistanceTask();
+                    calculateDistanceTask.execute();
+                    if (bundle.getBoolean("globe", false) && bundle.getBoolean("near", false)) {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), SHOW_STAGE_ZOOM_LEVEL));
+                    } else {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()), TRACK_ZOOM_LEVEL));
+                    }
                 } else {
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()), TRACK_ZOOM_LEVEL));
+                    drawAllRouteTask = new DrawAllRouteTask();
+                    drawAllRouteTask.execute(bundle.getInt("stage_id"));
+                    if (bundle.getBoolean("globe", false) && bundle.getBoolean("near", false)) {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()), SHOW_STAGE_ZOOM_LEVEL));
+                    } else {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()), TRACK_ZOOM_LEVEL));
+                    }
                 }
 
             } else {
                 drawAllRouteTask = new DrawAllRouteTask();
                 drawAllRouteTask.execute(bundle.getInt("stage_id"));
-                Log.d(DEBUGTAG, "No location, center to " + mFinishLocation.getLatitude() + ", " + mFinishLocation.getLongitude());
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mFinishLocation.getLatitude(), mFinishLocation.getLongitude()), TRACK_ZOOM_LEVEL));
             }
         } else {
             drawAllRouteTask = new DrawAllRouteTask();
             drawAllRouteTask.execute(0);
             if (mCurrentLocation != null) {
-                Log.d(DEBUGTAG, "We have location and no bundle recieved");
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), SHOW_STAGE_ZOOM_LEVEL));
-                Log.d(DEBUGTAG, "Center to " +mCurrentLocation.getLatitude() + " " + mCurrentLocation.getLongitude());
             } else {
-                Log.d(DEBUGTAG, "No location, no intent. Draw all.");
                 LatLng startPoint = new LatLng(42.4167413, -2.7294623);
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(startPoint, MIN_ZOOM_LEVEL));
             }

@@ -61,7 +61,7 @@ public interface AppConstants {
     static final int FIRST_SHOW_ZOOM_LEVEL = 10;
     static final int SHOW_MARKERS_ZOOM_LEVEL = 14;
     static final int SHOW_STAGE_ZOOM_LEVEL = 12;
-    static final int MIN_ZOOM_LEVEL = 10;
+    static final int MIN_ZOOM_LEVEL = 8;
     static final int MAX_ZOOM_LEVEL = 18;
 
 

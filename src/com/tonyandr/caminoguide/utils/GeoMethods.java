@@ -2,7 +2,6 @@ package com.tonyandr.caminoguide.utils;
 
 import android.content.Context;
 import android.location.Location;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -22,7 +21,7 @@ public class GeoMethods implements AppConstants {
     DBControllerAdapter dbController;
     public GeoMethods(Context context) {
         this.context = context;
-        dbController = new DBControllerAdapter(context);
+        dbController = DBControllerAdapter.getInstance(context);
     }
     JsonFilesHandler jfh;
     // Location near our stage?
@@ -42,7 +41,6 @@ public class GeoMethods implements AppConstants {
                     LatLngBounds box = new LatLngBounds((new LatLng(min.getDouble("lat"), min.getDouble("lng"))),(new LatLng(max.getDouble("lat"), max.getDouble("lng"))));
                     if (box.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
                         stages.add(fileObj.getInt("stageid"));
-                        Log.w(DEBUGTAG, "Close to stage #"+fileObj.getInt("stageid"));
                     }
                 }
             } else {
@@ -50,7 +48,6 @@ public class GeoMethods implements AppConstants {
             }
 
             if (stages.size() > 0) {
-                Log.w(DEBUGTAG, "Close to stages count #"+stages.size());
 
                 double localMin = 9999;
                 int localPointId = 0, partId = 0;
@@ -86,7 +83,6 @@ public class GeoMethods implements AppConstants {
                 min = fileObj.getJSONObject("minlatlng");
                 LatLngBounds box = new LatLngBounds((new LatLng(min.getDouble("lat"), min.getDouble("lng"))),(new LatLng(max.getDouble("lat"), max.getDouble("lng"))));
                 if (box.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
-                    Log.w(DEBUGTAG, "Close to stage #"+fileObj.getInt("stageid"));
                     return fileObj.getInt("stageid");
                 }
             }

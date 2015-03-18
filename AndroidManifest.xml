@@ -58,6 +58,7 @@
 
         <activity
             android:name=".SplashActivity"
+            android:screenOrientation="locked"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -69,20 +70,13 @@
             android:name=".map.MapActivity"
             android:icon="@drawable/ecn_icon"
             android:label="@string/app_name"
-            android:launchMode="singleTop" >
+            android:launchMode="singleInstance" >
         </activity>
         <activity
             android:name=".settings.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:launchMode="singleTop" >
+            android:launchMode="singleInstance" >
         </activity>
-
-        <service
-            android:name=".settings.UnZipService"
-            android:exported="false" />
-        <service
-            android:name=".map.GeoService"
-            android:exported="false" />
         <service
             android:name=".settings.MoveService"
             android:exported="false" />
@@ -90,12 +84,12 @@
         <activity
             android:name=".stages.StageActivity"
             android:label="@string/title_activity_stage"
-            android:launchMode="singleTop" >
+            android:launchMode="singleInstance" >
         </activity>
         <activity
             android:name=".settings.MapManagerActivity"
             android:label="@string/title_activity_map_manager"
-            android:launchMode="singleTop"
+            android:launchMode="singleInstance"
             android:parentActivityName=".settings.SettingsActivity" >
         </activity>
 
@@ -109,10 +103,11 @@
         <activity
             android:name=".feedback.FeedbackActivity"
             android:label="@string/title_activity_feedback"
-            android:launchMode="singleTop" >
+            android:launchMode="singleInstance" >
         </activity>
         <activity
             android:name=".feedback.AboutActivity"
+            android:launchMode="singleInstance"
             android:label="@string/title_activity_about" >
         </activity>
     </application>

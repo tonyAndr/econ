@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
-import android.util.Log;
 
 import com.tonyandr.caminoguide.constants.AppConstants;
 
@@ -24,7 +23,17 @@ public class DBControllerAdapter implements AppConstants{
 
     DBController dbController;
 
-    public DBControllerAdapter(Context context) {
+    private static DBControllerAdapter mInstance = null;
+
+    public static DBControllerAdapter getInstance(Context context) {
+
+        if (mInstance == null) {
+            mInstance = new DBControllerAdapter(context.getApplicationContext());
+        }
+        return mInstance;
+    }
+
+    private DBControllerAdapter(Context context) {
         dbController = new DBController(context);
     }
 
@@ -107,12 +116,12 @@ public class DBControllerAdapter implements AppConstants{
                     cursor.getDouble(cursor.getColumnIndex(dbController.feedback.LAT)),
                     cursor.getDouble(cursor.getColumnIndex(dbController.feedback.LNG))));
         }
-
-        db.close();
+        cursor.close();
         return list;
     }
 
     public Integer getStageFromLocation(Location location) {
+        int stage_id = 0;
         SQLiteDatabase db = dbController.getWritableDatabase();
         String[] columns = {dbController.albergues.STAGE};
         Cursor cursor;
@@ -120,15 +129,14 @@ public class DBControllerAdapter implements AppConstants{
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             int index = cursor.getColumnIndex(dbController.albergues.STAGE);
-            db.close();
             if (cursor.isNull(index)) {
-                return 0;
+                stage_id = 0;
             } else {
-                return cursor.getInt(index);
+                stage_id = cursor.getInt(index);
             }
-        } else {
-            return 0;
         }
+        cursor.close();
+        return stage_id;
     }
 
     public JSONArray getAlbergues(int stage_id) throws JSONException {
@@ -191,6 +199,10 @@ public class DBControllerAdapter implements AppConstants{
         db.close();
     }
 
+    public void closeConnection() {
+        dbController.close();
+    }
+
     static class DBController extends SQLiteOpenHelper {
 
         private static final String DATABASE_NAME = "caminodatabase";
@@ -240,7 +252,6 @@ public class DBControllerAdapter implements AppConstants{
         //Creates Table
         @Override
         public void onCreate(SQLiteDatabase database) {
-            Log.w(DEBUGTAG, "Creating tables");
             String query;
             query = "CREATE TABLE " + albergues.TABLE_NAME + " ( " + albergues.UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                     " " + albergues.TITLE + " TEXT, " + albergues.TYPE + " TEXT," + albergues.ADDRESS + " TEXT," +
@@ -267,7 +278,6 @@ public class DBControllerAdapter implements AppConstants{
                 e.remove("db_update_date");
                 e.commit();
             }
-            Log.w(DEBUGTAG, "Drop tables");
             String query;
             query = "DROP TABLE IF EXISTS " + albergues.TABLE_NAME;
             database.execSQL(query);

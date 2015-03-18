@@ -3,12 +3,11 @@ package com.tonyandr.caminoguide.stages;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.tonyandr.caminoguide.R;
@@ -25,12 +24,12 @@ public class StageViewAlberguesAdapter extends ArrayAdapter<StageViewAlbItem> {
 
 
     private static class ViewHolder {
-        TextView tvIcon;
+//        TextView tvIcon;
         TextView tvTitle;
         TextView tvTel;
         TextView tvBeds;
         TextView tvSection;
-        ImageButton ibFindAlb;
+        ImageView ibFindAlb;
     }
 
     public StageViewAlberguesAdapter(Context context, ArrayList<StageViewAlbItem> rows) {
@@ -49,7 +48,7 @@ public class StageViewAlberguesAdapter extends ArrayAdapter<StageViewAlbItem> {
             // return activity.getSupportFragmentManager();
 
         } catch (ClassCastException e) {
-            Log.d("FUCK", "Can't get the fragment manager with this");
+//            Log.d("FUCK", "Can't get the fragment manager with this");
         }
         return null;
     }
@@ -62,12 +61,12 @@ public class StageViewAlberguesAdapter extends ArrayAdapter<StageViewAlbItem> {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(getContext());
             convertView = inflater.inflate(R.layout.stage_albergues_list_item, parent, false);
-            viewHolder.tvIcon = (TextView) convertView.findViewById(R.id.iv_icon);
+//            viewHolder.tvIcon = (TextView) convertView.findViewById(R.id.iv_icon);
             viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tv_alb_title);
             viewHolder.tvTel = (TextView) convertView.findViewById(R.id.tv_alb_tel);
             viewHolder.tvBeds = (TextView) convertView.findViewById(R.id.tv_alb_beds);
             viewHolder.tvSection = (TextView) convertView.findViewById(R.id.tv_alblist_section);
-            viewHolder.ibFindAlb = (ImageButton) convertView.findViewById(R.id.ib_find_alb);
+            viewHolder.ibFindAlb = (ImageView) convertView.findViewById(R.id.ib_find_alb);
             convertView.setTag(viewHolder);
 
 //            viewHolder.ibFindAlb.setOnClickListener(new View.OnClickListener() {
@@ -105,12 +104,11 @@ public class StageViewAlberguesAdapter extends ArrayAdapter<StageViewAlbItem> {
         } else {
             viewHolder.tvSection.setVisibility(View.GONE);
         }
-        viewHolder.tvIcon.setText("A");
+//        viewHolder.tvIcon.setText("A");
         viewHolder.tvTitle.setText(row.title);
         viewHolder.tvTel.setText(row.tel);
         viewHolder.tvBeds.setText(row.beds + " beds, " + row.type);
         // Return the completed view to render on screen
-        Log.d("LV", row.title + " " + row.lat +":"+row.lng);
         return convertView;
     }
 

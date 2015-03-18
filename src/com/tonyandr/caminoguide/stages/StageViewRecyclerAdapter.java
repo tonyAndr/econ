@@ -2,12 +2,11 @@ package com.tonyandr.caminoguide.stages;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.tonyandr.caminoguide.R;
@@ -59,11 +58,10 @@ public class StageViewRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
             } else {
                 vhItem.tvSection.setVisibility(View.GONE);
             }
-            vhItem.tvIcon.setText("A");
+//            vhItem.tvIcon.setText("A");
             vhItem.tvTitle.setText(dataItem.title);
             vhItem.tvTel.setText(dataItem.tel);
             vhItem.tvBeds.setText(dataItem.beds + " beds, " + dataItem.type);
-            Log.d("RV", dataItem.title);
 
         } else if (holder instanceof VHHeader) {
             //cast holder to VHHeader and set data for header.
@@ -94,21 +92,21 @@ public class StageViewRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
 
     class VHItem extends RecyclerView.ViewHolder {
-        TextView tvIcon;
+//        TextView tvIcon;
         TextView tvTitle;
         TextView tvTel;
         TextView tvBeds;
         TextView tvSection;
-        ImageButton ibFindAlb;
+        ImageView ibFindAlb;
 
         public VHItem(View itemView) {
             super(itemView);
-            tvIcon = (TextView) itemView.findViewById(R.id.iv_icon);
+//            tvIcon = (TextView) itemView.findViewById(R.id.iv_icon);
             tvTitle = (TextView) itemView.findViewById(R.id.tv_alb_title);
             tvTel = (TextView) itemView.findViewById(R.id.tv_alb_tel);
             tvBeds = (TextView) itemView.findViewById(R.id.tv_alb_beds);
             tvSection = (TextView) itemView.findViewById(R.id.tv_alblist_section);
-            ibFindAlb = (ImageButton) itemView.findViewById(R.id.ib_find_alb);
+            ibFindAlb = (ImageView) itemView.findViewById(R.id.ib_find_alb);
         }
     }
 

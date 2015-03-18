@@ -12,7 +12,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -165,27 +164,21 @@ public class NavigationDrawerLayout extends Fragment implements DrawRecycleAdapt
         mDrawerLayout.closeDrawer(containerView);
         switch (position) {
             case 0:
-//                Log.i("something", "do 1");
                 startActivity(new Intent(getActivity(), MapActivity.class));
                 break;
             case 1:
-//                Log.i("something", "do 1");
                 startActivity(new Intent(getActivity(), StageActivity.class));
                 break;
             case 2:
-//                Log.i("something", "do 2");
                 startActivity(new Intent(getActivity(), SettingsActivity.class));
                 break;
             case 3:
-//                Log.i("something", "do 3");
                 startActivity(new Intent(getActivity(), FeedbackActivity.class));
                 break;
             case 4:
-//                Log.i("something", "do 3");
                 startActivity(new Intent(getActivity(), AboutActivity.class));
                 break;
             default:
-                Log.i("something", "do def");
                 break;
         }
     }

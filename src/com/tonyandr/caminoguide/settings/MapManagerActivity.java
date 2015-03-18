@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -104,7 +103,6 @@ public class MapManagerActivity extends ActionBarActivity implements AppConstant
 
         @Override
         public Fragment getItem(int position) {
-            Log.w(DEBUGTAG, "pos " + position);
             Fragment fragment = null;
             switch(position) {
                 case 0: fragment = MapDownloadFragment.newInstance(); break;

@@ -95,7 +95,7 @@
     <string name="distance_to_finish">To finish:</string>
     <string name="title_activity_splash">Camino Guide Offline</string>
     <string name="title_activity_feedback">Feedback</string>
-    <string name="notify_suggestion_text">Please, notify us about any mistakes/errors or whatever in our app. You can include you current position using checkbox below.</string>
+    <string name="notify_suggestion_text">Please, notify us about any mistakes/errors which you will see (e.g. incorrect albergue\'s coordinates or app crash). You can include you current position using checkbox below.</string>
     <string name="drawing_loading_route_text">Drawing route...</string>
     <string name="stage_activity_list_fragment_title">Stages</string>
     <string name="progress_drawing_route">Drawing route...</string>
@@ -105,7 +105,12 @@
     <string name="title_activity_about">AboutActivity</string>
 
     <string name="about_text">
-        <b>Camino Guide Offline</b> is your personal guide on Camino Frances. You will never lose your way. You will always find a place to sleep.\n\n
+This is your personal guide on Camino Frances. You will never lose your way. You will always find a place to sleep.\n
+Camino Guide has offline maps to navigation without internet connection which are very useful on camino. \n
+\n\n
+Most accurate and actual database of albergues. Most accurate albergues coordinates. Very detailed camino route with alternative ways. \n\n
+
+This app will show you the distance to the end of the stage, or the selected albergue. \n\n
 <b>Features:</b>\n
 *Offline and online maps\n
 *Show albergues on map with very accurate position\n
@@ -115,7 +120,9 @@
 *Show stage profile and current elevation level\n
 *Show stage localities and albergues\n
 *Show your progress on stage (km done/left)\n
-*Albergues details such as phone, beds, address, type\n
+*Albergues details such as phone, beds, address, type\n\n\n
+
+        Important note: Recommended to use online (Google) maps. Offline maps can be slow and unstable.
 
         \n\n\n
         Map data © OpenStreetMap contributors\n

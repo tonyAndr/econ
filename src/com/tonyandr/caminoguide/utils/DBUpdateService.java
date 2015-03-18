@@ -2,7 +2,6 @@ package com.tonyandr.caminoguide.utils;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,8 +20,7 @@ public class DBUpdateService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d("dbservice", "start service");
-        dbController = new DBControllerAdapter(this);
+        dbController = DBControllerAdapter.getInstance(this);
         eraseAlbergues();
         eraseLocalities();
         try {
@@ -45,7 +43,6 @@ public class DBUpdateService extends IntentService {
         }
 
         sendThisBroadcast(100, albArrayLength, true);
-        Log.d("dbservice", "stop service");
 
     }
 
@@ -84,14 +81,12 @@ public class DBUpdateService extends IntentService {
                             obj.getString("type"), obj.getString("address"));
                     count++;
                     progress = Math.round(count*100/length);
-                    Log.d("dbservice", "Progress " + progress);
                     sendThisBroadcast(progress, count, false);
                 } else {
-                    Log.d("dbservice", "Null at " + obj.getInt("id"));
+//                    Log.d("dbservice", "Null at " + obj.getInt("id"));
                 }
 
             }
-            Log.d("dbservice", "Inserted albergues" + count);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -105,18 +100,15 @@ public class DBUpdateService extends IntentService {
                     dbController.insertLocality(obj.getString("locality"), obj.getDouble("latitude"), obj.getDouble("longitude"));
                     count++;
             }
-            Log.d("dbservice", "Inserted localities" + count);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
     private void eraseAlbergues () {
         int count = dbController.eraseAlbergues();
-        Log.d("dbservice", "deleted albergues" +count);
     }
     private void eraseLocalities () {
         int count = dbController.eraseLocality();
-        Log.d("dbservice", "deleted localities" +count);
     }
 
 }
